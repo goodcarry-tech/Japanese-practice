@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ff9a9e">
+    <title>日語五十音：櫻花極致版</title>
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/144/sakura.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap');
+
+        :root {
+            --primary: #ff9a9e;
+            --primary-dark: #e84393;
+            --text: #2d3436;
+            --glass: rgba(255, 255, 255, 0.94);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --success: #00b894;
+            --error: #ff7675;
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            overflow: hidden;
+            background: url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1080&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            touch-action: manipulation;
+        }
+
+        #sakura-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1; overflow: hidden;
+        }
+        .petal {
+            position: absolute; background: linear-gradient(120deg, #ffc3a0 0%, #ffafbd 100%);
+            border-radius: 150% 0 150% 0; animation: fall linear infinite;
+            opacity: 0.9; box-shadow: 0 0 5px rgba(255, 154, 158, 0.5);
+        }
+        @keyframes fall {
+            0% { opacity: 0; transform: translate(0, -10vh) rotate(0deg); }
+            10% { opacity: 1; }
+            100% { opacity: 0; transform: translate(50px, 110vh) rotate(360deg); }
+        }
+
+        .container {
+            position: relative; z-index: 10; background: var(--glass);
+            padding: 1.5rem; border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            border: 1px solid var(--glass-border);
+            width: 85%; max-width: 450px;
+            display: flex; flex-direction: column; align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; border-bottom: 2px dashed #ffc3a0; padding-bottom: 10px;
+        }
+        h1 { font-size: 1.4rem; margin: 0; color: var(--primary-dark); }
+        .progress-badge { background: linear-gradient(to right, #ff9a9e, #fecfef); color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; }
+
+        .control-panel { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; align-items: center; }
+        .category-scroll { display: flex; gap: 8px; overflow-x: auto; width: 100%; justify-content: center; padding-bottom: 5px; }
+        .chip { padding: 6px 12px; border-radius: 20px; background: white; border: 1px solid #ffc3a0; color: var(--text); font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); transform: scale(1.05); }
+
+        .speed-control {
+            display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.6);
+            padding: 5px 15px; border-radius: 20px; width: 85%; justify-content: center;
+            color: #636e72; font-size: 0.85rem; border: 1px solid #ffeaa7;
+        }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 5px; border-radius: 5px; background: #dfe6e9; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; }
+
+        .toggle-group { display: flex; gap: 5px; background: white; padding: 3px 10px; border-radius: 20px; border: 1px solid #ffc3a0; margin-top: 5px; }
+        .mode-btn { background: none; border: none; color: #b2bec3; cursor: pointer; font-weight: bold; font-size: 0.85rem; padding: 5px 10px; border-radius: 15px; transition: 0.2s; }
+        .mode-btn.active { background: var(--primary-dark); color: white; }
+
+        .flashcard {
+            width: 180px; height: 200px; background: white; border-radius: 24px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(255, 154, 158, 0.25); border: 4px solid white;
+            cursor: pointer; transition: transform 0.2s; margin-bottom: 15px; position: relative;
+        }
+        .flashcard:active { transform: scale(0.95); }
+        .flashcard.wrong-shake { border-color: var(--error); animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-8px);} 75% {transform: translateX(8px);} }
+
+        .kana-char { font-size: 4.5rem; font-weight: 700; color: var(--text); line-height: 1; }
+        .romaji-hint { font-size: 1.2rem; color: #fab1a0; margin-top: 10px; opacity: 0; transition: 0.3s; }
+        .flashcard:hover .romaji-hint { opacity: 1; }
+
+        .input-section { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* 聲波視覺化條 */
+        .visualizer-container {
+            width: 200px; height: 10px; display: flex; justify-content: center; align-items: center; gap: 3px;
+            margin-bottom: 10px; opacity: 0; transition: opacity 0.3s;
+        }
+        .visualizer-bar {
+            width: 4px; background-color: var(--success); border-radius: 2px;
+            height: 4px; transition: height 0.1s;
+        }
+
+        .status-log { 
+            font-size: 0.95rem; color: #636e72; min-height: 1.5rem; margin-bottom: 10px; 
+            font-weight: bold; background: rgba(255,255,255,0.9); padding: 8px 15px; 
+            border-radius: 12px; border: 2px solid #ffc3a0; width: 90%; text-align: center;
+        }
+        
+        .mic-btn { 
+            width: 75px; height: 75px; border-radius: 50%; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); 
+            border: none; color: white; font-size: 2rem; cursor: pointer; 
+            box-shadow: 0 6px 20px rgba(255, 154, 158, 0.5); 
+            display: flex; align-items: center; justify-content: center; 
+            transition: 0.2s; -webkit-tap-highlight-color: transparent; position: relative;
+        }
+        .mic-btn:active { transform: scale(0.9); }
+        .mic-btn.listening { background: var(--error); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,118,117,0.7);} 70% {box-shadow: 0 0 0 20px rgba(0,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(0,0,0,0);} }
+
+        input[type="text"] { width: 220px; padding: 12px 20px; font-size: 1.2rem; border: 2px solid #ffc3a0; border-radius: 50px; text-align: center; outline: none; font-family: 'Zen Maru Gothic', sans-serif; }
+
+        #result-view { display: none; width: 100%; text-align: center; }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: white; border: 4px solid #ff9a9e; margin: 0 auto 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--primary-dark); }
+        .ranking-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 300px; overflow-y: auto; text-align: left; padding: 5px; }
+        .rank-item { background: white; padding: 8px 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-action { width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 50px; background: var(--primary-dark); color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <div id="sakura-container"></div>
+
+    <div class="container">
+        <div id="practice-view" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="header">
+                <h1>櫻花特訓・App版</h1>
+                <div class="progress-badge" id="progress-text">1 / 25</div>
+            </div>
+
+            <div class="control-panel">
+                <div class="category-scroll">
+                    <div class="chip active" onclick="setCategory('seion', this)">清音</div>
+                    <div class="chip" onclick="setCategory('dakuon', this)">濁音</div>
+                    <div class="chip" onclick="setCategory('handakuon', this)">半濁音</div>
+                    <div class="chip" onclick="setCategory('yoon', this)">拗音</div>
+                    <div class="chip" onclick="setCategory('all', this)">全部</div>
+                </div>
+                <div class="speed-control">
+                    <span>🐢</span>
+                    <input type="range" min="0.5" max="1.5" step="0.1" value="1.0" oninput="updateSpeed(this.value)">
+                    <span id="speed-display" style="font-weight:bold; width:40px;">1.0x</span>
+                    <span>🐰</span>
+                </div>
+                <div class="toggle-group">
+                    <button class="mode-btn active" id="btn-voice" onclick="setInputMode('voice')">🎤 語音</button>
+                    <button class="mode-btn" id="btn-type" onclick="setInputMode('type')">⌨️ 打字</button>
+                    <span>|</span>
+                    <button class="mode-btn active" onclick="setKana('h', this)">平假名</button>
+                    <button class="mode-btn" onclick="setKana('k', this)">片假名</button>
+                </div>
+            </div>
+
+            <div class="flashcard" id="flashcard" onclick="playAudio()">
+                <div class="kana-char" id="kana-display">あ</div>
+                <div class="romaji-hint" id="romaji-hint">a</div>
+                <div style="font-size: 0.75rem; color: #b2bec3; position: absolute; bottom: 10px;">🔊 點擊聽發音</div>
+            </div>
+
+            <div class="input-section">
+                <!-- 聲波條 -->
+                <div class="visualizer-container" id="visualizer">
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                </div>
+                
+                <div id="status-log" class="status-log">點擊麥克風<br>請對準手機底部說話</div>
+                <button id="mic-btn" class="mic-btn" onclick="toggleSpeech()">🎤</button>
+                <input type="text" id="text-input" style="display:none;" placeholder="輸入羅馬拼音" autocomplete="off">
+            </div>
+        </div>
+
+        <div id="result-view">
+            <h2 style="color:var(--primary-dark); margin-bottom:15px;">🌸 練習完成 🌸</h2>
+            <div class="score-circle">
+                <span style="font-size:2.5rem; font-weight:bold;" id="final-score">0</span>
+                <span style="font-size:0.8rem;">最終得分</span>
+            </div>
+            <div class="ranking-list" id="ranking-container"></div>
+            <button class="btn-action" onclick="restartSession()">再次挑戰</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 櫻花特效 ---
+        function createSakura() {
+            const c = document.getElementById('sakura-container');
+            const p = document.createElement('div'); p.className = 'petal';
+            const size = Math.random()*10+5;
+            p.style.left = Math.random()*window.innerWidth+'px';
+            p.style.width = size+'px'; p.style.height = size+'px';
+            p.style.animationDuration = (Math.random()*5+5)+'s';
+            c.appendChild(p); setTimeout(()=>p.remove(), 10000);
+        }
+        setInterval(createSakura, 100);
+
+        // --- 數據 ---
+        const gojuonDB = { seion:[{r:'a',h:'あ',k:'ア'},{r:'i',h:'い',k:'イ'},{r:'u',h:'う',k:'ウ'},{r:'e',h:'え',k:'エ'},{r:'o',h:'お',k:'オ'},{r:'ka',h:'か',k:'カ'},{r:'ki',h:'き',k:'キ'},{r:'ku',h:'く',k:'ク'},{r:'ke',h:'け',k:'ケ'},{r:'ko',h:'こ',k:'コ'},{r:'sa',h:'さ',k:'サ'},{r:'shi',h:'し',k:'シ'},{r:'su',h:'す',k:'ス'},{r:'se',h:'せ',k:'セ'},{r:'so',h:'そ',k:'ソ'},{r:'ta',h:'た',k:'タ'},{r:'chi',h:'ち',k:'チ'},{r:'tsu',h:'つ',k:'ツ'},{r:'te',h:'て',k:'テ'},{r:'to',h:'と',k:'ト'},{r:'na',h:'な',k:'ナ'},{r:'ni',h:'に',k:'ニ'},{r:'nu',h:'ぬ',k:'ヌ'},{r:'ne',h:'ね',k:'ネ'},{r:'no',h:'の',k:'ノ'},{r:'ha',h:'は',k:'ハ'},{r:'hi',h:'ひ',k:'ヒ'},{r:'fu',h:'ふ',k:'フ'},{r:'he',h:'へ',k:'ヘ'},{r:'ho',h:'ほ',k:'ホ'},{r:'ma',h:'ま',k:'マ'},{r:'mi',h:'み',k:'ミ'},{r:'mu',h:'む',k:'ム'},{r:'me',h:'め',k:'メ'},{r:'mo',h:'も',k:'モ'},{r:'ya',h:'や',k:'ヤ'},{r:'yu',h:'ゆ',k:'ユ'},{r:'yo',h:'よ',k:'ヨ'},{r:'ra',h:'ら',k:'ラ'},{r:'ri',h:'り',k:'リ'},{r:'ru',h:'る',k:'ル'},{r:'re',h:'れ',k:'レ'},{r:'ro',h:'ろ',k:'ロ'},{r:'wa',h:'わ',k:'ワ'},{r:'wo',h:'を',k:'ヲ'},{r:'n',h:'ん',k:'ン'}], dakuon:[{r:'ga',h:'が',k:'ガ'},{r:'gi',h:'ぎ',k:'ギ'},{r:'gu',h:'ぐ',k:'グ'},{r:'ge',h:'げ',k:'ゲ'},{r:'go',h:'ご',k:'ゴ'},{r:'za',h:'ざ',k:'ザ'},{r:'ji',h:'じ',k:'ジ'},{r:'zu',h:'ず',k:'ズ'},{r:'ze',h:'ぜ',k:'ゼ'},{r:'zo',h:'ぞ',k:'ゾ'},{r:'da',h:'だ',k:'ダ'},{r:'ji',h:'ぢ',k:'ヂ'},{r:'zu',h:'づ',k:'ヅ'},{r:'de',h:'で',k:'デ'},{r:'do',h:'ど',k:'ド'},{r:'ba',h:'ば',k:'バ'},{r:'bi',h:'び',k:'ビ'},{r:'bu',h:'ぶ',k:'ブ'},{r:'be',h:'べ',k:'ベ'},{r:'bo',h:'ぼ',k:'ボ'}], handakuon:[{r:'pa',h:'ぱ',k:'パ'},{r:'pi',h:'ぴ',k:'ピ'},{r:'pu',h:'ぷ',k:'プ'},{r:'pe',h:'ぺ',k:'ペ'},{r:'po',h:'ぽ',k:'ポ'}], yoon:[{r:'kya',h:'きゃ',k:'キャ'},{r:'kyu',h:'きゅ',k:'キュ'},{r:'kyo',h:'きょ',k:'キョ'},{r:'sha',h:'しゃ',k:'シャ'},{r:'shu',h:'しゅ',k:'シュ'},{r:'sho',h:'しょ',k:'ショ'},{r:'cha',h:'ちゃ',k:'チャ'},{r:'chu',h:'ちゅ',k:'チュ'},{r:'cho',h:'ちょ',k:'チョ'},{r:'nya',h:'にゃ',k:'ニャ'},{r:'nyu',h:'にゅ',k:'ニュ'},{r:'nyo',h:'にょ',k:'ニョ'},{r:'hya',h:'ひゃ',k:'ヒャ'},{r:'hyu',h:'ひゅ',k:'ヒュ'},{r:'hyo',h:'ひょ',k:'ヒョ'},{r:'mya',h:'みゃ',k:'ミャ'},{r:'myu',h:'みゅ',k:'ミュ'},{r:'myo',h:'みょ',k:'ミョ'},{r:'rya',h:'りゃ',k:'リャ'},{r:'ryu',h:'りゅ',k:'リュ'},{r:'ryo',h:'りょ',k:'リョ'},{r:'gya',h:'ぎゃ',k:'ギャ'},{r:'gyu',h:'ぎゅ',k:'ギュ'},{r:'gyo',h:'ぎょ',k:'ギョ'},{r:'ja',h:'じゃ',k:'ジャ'},{r:'ju',h:'じゅ',k:'ジュ'},{r:'jo',h:'じょ',k:'ジョ'},{r:'bya',h:'びゃ',k:'ビャ'},{r:'byu',h:'びゅ',k:'ビュ'},{r:'byo',h:'びょ',k:'ビョ'},{r:'pya',h:'ぴゃ',k:'ピャ'},{r:'pyu',h:'ぴゅ',k:'ピュ'},{r:'pyo',h:'ぴょ',k:'ピョ'}] };
+
+        const QUESTIONS_LIMIT = 25;
+        let sessionData = { count: 0, correct: 0 };
+        let state = { category: 'seion', kanaType: 'h', inputMode: 'voice', currentCard: null, pool: [] };
+        let globalMistakes = JSON.parse(localStorage.getItem('gojuon_sakura_mistakes_app')) || {};
+        let recognition = null;
+        let isListening = false;
+        let speechRate = 1.0;
+        
+        // Audio Visualizer 變數
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
+
+        window.onload = function() {
+            initPool();
+            nextQuestion();
+        };
+
+        function startVisualizer(stream) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            microphone = audioContext.createMediaStreamSource(stream);
+            javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+            analyser.smoothingTimeConstant = 0.8;
+            analyser.fftSize = 1024;
+
+            microphone.connect(analyser);
+            analyser.connect(javascriptNode);
+            javascriptNode.connect(audioContext.destination);
+
+            const bars = document.querySelectorAll('.visualizer-bar');
+            const visualizerContainer = document.getElementById('visualizer');
+            visualizerContainer.style.opacity = '1';
+
+            javascriptNode.onaudioprocess = function() {
+                var array = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(array);
+                var values = 0;
+                var length = array.length;
+                for (var i = 0; i < length; i++) { values += array[i]; }
+                var average = values / length;
+
+                // 讓綠條跳動
+                bars.forEach(bar => {
+                    let height = Math.min(10 + average * 1.5, 30); 
+                    bar.style.height = height + 'px';
+                });
+            }
+        }
+
+        function stopVisualizer() {
+            if(javascriptNode) javascriptNode.disconnect();
+            if(microphone) microphone.disconnect();
+            if(analyser) analyser.disconnect();
+            if(audioContext) audioContext.close();
+            document.getElementById('visualizer').style.opacity = '0';
+        }
+
+        function initSpeech() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ja-JP';
+                recognition.continuous = false;
+                recognition.interimResults = true; 
+                recognition.maxAlternatives = 5;
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('mic-btn').classList.add('listening');
+                    logStatus("👂 正在聆聽...<br>若綠條沒動，請靠近麥克風");
+                    
+                    // 啟動麥克風監聽以顯示波形 (Visualizer)
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(function(stream) {
+                            startVisualizer(stream);
+                        })
+                        .catch(function(err) {
+                            console.log("Mic access error for visualizer: " + err);
+                        });
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    document.getElementById('mic-btn').classList.remove('listening');
+                    stopVisualizer();
+                    setTimeout(() => {
+                        const log = document.getElementById('status-log').innerText;
+                        if (log.includes("正在聆聽")) {
+                            logStatus("❌ 沒聽到聲音<br>請手機靠近嘴巴");
+                        }
+                    }, 200);
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            checkAnswer(event.results[i][0].transcript);
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                            logStatus(`👂 檢測中: ${interimTranscript}`);
+                        }
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    isListening = false;
+                    stopVisualizer();
+                    document.getElementById('mic-btn').classList.remove('listening');
+                    if (event.error === 'no-speech') {
+                        logStatus("❌ 沒聽到聲音");
+                    } else {
+                        logStatus("⚠️ 錯誤: " + event.error);
+                    }
+                };
+            } else {
+                alert("請使用 Chrome (Android) 或 Safari (iOS)");
+            }
+        }
+
+        function toggleSpeech() {
+            if(!recognition) initSpeech();
+            if (isListening) { recognitio
