@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ff9a9e">
+    <title>日語五十音：4K清晰櫻花版</title>
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/144/sakura.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap');
+
+        :root {
+            --primary: #ff85a2; /* 更飽和的櫻花粉 */
+            --primary-dark: #e84393;
+            --text: #2d3436;
+            --card-bg: rgba(255, 255, 255, 0.95); /* 高不透明度，不使用模糊 */
+            --success: #00b894;
+            --error: #ff7675;
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text);
+            overflow: hidden;
+            /* 🌟 4K 超高清背景：富士山與櫻花 (q=100 品質全開) */
+            background: url('https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?q=100&w=3840&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            touch-action: manipulation;
+        }
+
+        /* 🌸 櫻花特效層 */
+        #sakura-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .petal {
+            position: absolute;
+            background: linear-gradient(120deg, #ffc3a0 0%, #ffafbd 100%);
+            border-radius: 150% 0 150% 0;
+            animation: fall linear infinite;
+            opacity: 0.95; /* 提高不透明度，讓花瓣更清楚 */
+            box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+        }
+
+        @keyframes fall {
+            0% { opacity: 0; transform: translate(0, -10vh) rotate(0deg); }
+            10% { opacity: 1; }
+            100% { opacity: 0; transform: translate(80px, 110vh) rotate(360deg); }
+        }
+
+        /* 主容器 - 移除 backdrop-filter (模糊濾鏡) */
+        .container {
+            position: relative;
+            z-index: 10;
+            background: var(--card-bg); /* 純淨背景，無模糊 */
+            padding: 1.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            width: 85%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* ❌ 這裡移除了 backdrop-filter: blur(...) */
+        }
+
+        /* 介面元件 */
+        .header {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; border-bottom: 2px dashed #ffb7b2; padding-bottom: 10px;
+        }
+        h1 { font-size: 1.4rem; margin: 0; color: var(--primary-dark); text-shadow: none; }
+        
+        .progress-badge {
+            background: var(--primary);
+            color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold; font-size: 0.8rem;
+        }
+
+        /* 控制面板 */
+        .control-panel { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; align-items: center; }
+        .category-scroll { display: flex; gap: 8px; overflow-x: auto; width: 100%; justify-content: center; padding-bottom: 5px; }
+        .chip { padding: 6px 12px; border-radius: 20px; background: #fff0f5; border: 1px solid #ffb7b2; color: #d63031; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.2s; font-weight: bold; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); transform: scale(1.05); }
+
+        .speed-control {
+            display: flex; align-items: center; gap: 10px; background: #fff0f5;
+            padding: 8px 15px; border-radius: 20px; width: 85%; justify-content: center;
+            color: #636e72; font-size: 0.85rem; border: 1px solid #ffb7b2;
+        }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 5px; border-radius: 5px; background: #dfe6e9; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        .toggle-group { display: flex; gap: 5px; background: #fff0f5; padding: 3px 10px; border-radius: 20px; border: 1px solid #ffb7b2; margin-top: 5px; }
+        .mode-btn { background: none; border: none; color: #b2bec3; cursor: pointer; font-weight: bold; font-size: 0.85rem; padding: 5px 10px; border-radius: 15px; transition: 0.2s; }
+        .mode-btn.active { background: var(--primary-dark); color: white; }
+
+        /* 卡片 */
+        .flashcard {
+            width: 180px; height: 200px; background: white; border-radius: 24px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(232, 67, 147, 0.2); border: 3px solid #ffeaa7;
+            cursor: pointer; transition: transform 0.2s; margin-bottom: 15px;
+        }
+        .flashcard:active { transform: scale(0.95); }
+        .flashcard.wrong-shake { border-color: var(--error); animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-8px);} 75% {transform: translateX(8px);} }
+
+        .kana-char { font-size: 4.5rem; font-weight: 700; color: var(--text); line-height: 1; }
+        .romaji-hint { font-size: 1.2rem; color: #fab1a0; margin-top: 10px; opacity: 0; transition: 0.3s; }
+        .flashcard:hover .romaji-hint { opacity: 1; }
+
+        .input-section { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* 聲波視覺化條 */
+        .visualizer-container {
+            width: 200px; height: 10px; display: flex; justify-content: center; align-items: center; gap: 4px;
+            margin-bottom: 10px; opacity: 0; transition: opacity 0.3s;
+        }
+        .visualizer-bar {
+            width: 5px; background-color: #2ecc71; border-radius: 5px;
+            height: 5px; transition: height 0.05s;
+        }
+
+        .status-log { 
+            font-size: 1rem; color: #2d3436; min-height: 2.5rem; margin-bottom: 15px; 
+            font-weight: 700; background: #fff; padding: 10px 15px; 
+            border-radius: 12px; border: 2px solid #ffb7b2;
+            width: 90%; text-align: center; display: flex; align-items: center; justify-content: center;
+            line-height: 1.4;
+        }
+        
+        .mic-btn { 
+            width: 80px; height: 80px; border-radius: 50%; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #ff6b6b 100%); 
+            border: 4px solid white; color: white; font-size: 2.2rem; cursor: pointer; 
+            box-shadow: 0 8px 20px rgba(232, 67, 147, 0.4); 
+            display: flex; align-items: center; justify-content: center; 
+            transition: 0.2s; -webkit-tap-highlight-color: transparent;
+        }
+        .mic-btn:active { transform: scale(0.9); }
+        .mic-btn.listening { background: var(--error); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,118,117,0.7);} 70% {box-shadow: 0 0 0 20px rgba(0,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(0,0,0,0);} }
+
+        input[type="text"] { width: 220px; padding: 12px 20px; font-size: 1.2rem; border: 2px solid #ffc3a0; border-radius: 50px; text-align: center; outline: none; font-family: 'Zen Maru Gothic', sans-serif; }
+
+        #result-view { display: none; width: 100%; text-align: center; }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: white; border: 5px solid #ff85a2; margin: 0 auto 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--primary-dark); }
+        .ranking-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 300px; overflow-y: auto; text-align: left; padding: 5px; }
+        .rank-item { background: white; padding: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        .btn-action { width: 100%; margin-top: 15px; padding: 14px; border: none; border-radius: 50px; background: var(--primary-dark); color: white; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <div id="sakura-container"></div>
+
+    <div class="container">
+        <div id="practice-view" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="header">
+                <h1>櫻花特訓・高清版</h1>
+                <div class="progress-badge" id="progress-text">1 / 25</div>
+            </div>
+
+            <div class="control-panel">
+                <div class="category-scroll">
+                    <div class="chip active" onclick="setCategory('seion', this)">清音</div>
+                    <div class="chip" onclick="setCategory('dakuon', this)">濁音</div>
+                    <div class="chip" onclick="setCategory('handakuon', this)">半濁音</div>
+                    <div class="chip" onclick="setCategory('yoon', this)">拗音</div>
+                    <div class="chip" onclick="setCategory('all', this)">全部</div>
+                </div>
+                <div class="speed-control">
+                    <span>🐢</span>
+                    <input type="range" min="0.5" max="1.5" step="0.1" value="1.0" oninput="updateSpeed(this.value)">
+                    <span id="speed-display" style="font-weight:bold; width:40px;">1.0x</span>
+                    <span>🐰</span>
+                </div>
+                <div class="toggle-group">
+                    <button class="mode-btn active" id="btn-voice" onclick="setInputMode('voice')">🎤 語音</button>
+                    <button class="mode-btn" id="btn-type" onclick="setInputMode('type')">⌨️ 打字</button>
+                    <span>|</span>
+                    <button class="mode-btn active" onclick="setKana('h', this)">平假名</button>
+                    <button class="mode-btn" onclick="setKana('k', this)">片假名</button>
+                </div>
+            </div>
+
+            <div class="flashcard" id="flashcard" onclick="playAudio()">
+                <div class="kana-char" id="kana-display">あ</div>
+                <div class="romaji-hint" id="romaji-hint">a</div>
+                <div style="font-size: 0.75rem; color: #b2bec3; position: absolute; bottom: 10px;">🔊 點擊聽發音</div>
+            </div>
+
+            <div class="input-section">
+                <!-- 聲波條 -->
+                <div class="visualizer-container" id="visualizer">
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                </div>
+                
+                <div id="status-log" class="status-log">準備就緒<br>請按麥克風</div>
+                <button id="mic-btn" class="mic-btn" onclick="toggleSpeech()">🎤</button>
+                <input type="text" id="text-input" style="display:none;" placeholder="輸入羅馬拼音" autocomplete="off">
+            </div>
+        </div>
+
+        <div id="result-view">
+            <h2 style="color:var(--primary-dark); margin-bottom:15px;">🌸 練習完成 🌸</h2>
+            <div class="score-circle">
+                <span style="font-size:2.5rem; font-weight:bold;" id="final-score">0</span>
+                <span style="font-size:0.8rem;">最終得分</span>
+            </div>
+            <div class="ranking-list" id="ranking-container"></div>
+            <button class="btn-action" onclick="restartSession()">再次挑戰</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 櫻花特效 (高密度+大花瓣) ---
+        function createSakura() {
+            const c = document.getElementById('sakura-container');
+            const p = document.createElement('div'); p.className = 'petal';
+            const size = Math.random()*12+8; // 增大尺寸
+            p.style.left = Math.random()*window.innerWidth+'px';
+            p.style.width = size+'px'; p.style.height = size+'px';
+            p.style.animationDuration = (Math.random()*5+4)+'s';
+            c.appendChild(p); setTimeout(()=>p.remove(), 9000);
+        }
+        setInterval(createSakura, 80); // 80ms 一片
+
+        // --- 數據 ---
+        const gojuonDB = { seion:[{r:'a',h:'あ',k:'ア'},{r:'i',h:'い',k:'イ'},{r:'u',h:'う',k:'ウ'},{r:'e',h:'え',k:'エ'},{r:'o',h:'お',k:'オ'},{r:'ka',h:'か',k:'カ'},{r:'ki',h:'き',k:'キ'},{r:'ku',h:'く',k:'ク'},{r:'ke',h:'け',k:'ケ'},{r:'ko',h:'こ',k:'コ'},{r:'sa',h:'さ',k:'サ'},{r:'shi',h:'し',k:'シ'},{r:'su',h:'す',k:'ス'},{r:'se',h:'せ',k:'セ'},{r:'so',h:'そ',k:'ソ'},{r:'ta',h:'た',k:'タ'},{r:'chi',h:'ち',k:'チ'},{r:'tsu',h:'つ',k:'ツ'},{r:'te',h:'て',k:'テ'},{r:'to',h:'と',k:'ト'},{r:'na',h:'な',k:'ナ'},{r:'ni',h:'に',k:'ニ'},{r:'nu',h:'ぬ',k:'ヌ'},{r:'ne',h:'ね',k:'ネ'},{r:'no',h:'の',k:'ノ'},{r:'ha',h:'は',k:'ハ'},{r:'hi',h:'ひ',k:'ヒ'},{r:'fu',h:'ふ',k:'フ'},{r:'he',h:'へ',k:'ヘ'},{r:'ho',h:'ほ',k:'ホ'},{r:'ma',h:'ま',k:'マ'},{r:'mi',h:'み',k:'ミ'},{r:'mu',h:'む',k:'ム'},{r:'me',h:'め',k:'メ'},{r:'mo',h:'も',k:'モ'},{r:'ya',h:'や',k:'ヤ'},{r:'yu',h:'ゆ',k:'ユ'},{r:'yo',h:'よ',k:'ヨ'},{r:'ra',h:'ら',k:'ラ'},{r:'ri',h:'り',k:'リ'},{r:'ru',h:'る',k:'ル'},{r:'re',h:'れ',k:'レ'},{r:'ro',h:'ろ',k:'ロ'},{r:'wa',h:'わ',k:'ワ'},{r:'wo',h:'を',k:'ヲ'},{r:'n',h:'ん',k:'ン'}], dakuon:[{r:'ga',h:'が',k:'ガ'},{r:'gi',h:'ぎ',k:'ギ'},{r:'gu',h:'ぐ',k:'グ'},{r:'ge',h:'げ',k:'ゲ'},{r:'go',h:'ご',k:'ゴ'},{r:'za',h:'ざ',k:'ザ'},{r:'ji',h:'じ',k:'ジ'},{r:'zu',h:'ず',k:'ズ'},{r:'ze',h:'ぜ',k:'ゼ'},{r:'zo',h:'ぞ',k:'ゾ'},{r:'da',h:'だ',k:'ダ'},{r:'ji',h:'ぢ',k:'ヂ'},{r:'zu',h:'づ',k:'ヅ'},{r:'de',h:'de',k:'デ'},{r:'do',h:'ど',k:'ド'},{r:'ba',h:'ば',k:'バ'},{r:'bi',h:'び',k:'ビ'},{r:'bu',h:'ぶ',k:'ブ'},{r:'be',h:'べ',k:'ベ'},{r:'bo',h:'ぼ',k:'ボ'}], handakuon:[{r:'pa',h:'ぱ',k:'パ'},{r:'pi',h:'ぴ',k:'ピ'},{r:'pu',h:'ぷ',k:'プ'},{r:'pe',h:'ぺ',k:'ペ'},{r:'po',h:'ぽ',k:'ポ'}], yoon:[{r:'kya',h:'きゃ',k:'キャ'},{r:'kyu',h:'きゅ',k:'キュ'},{r:'kyo',h:'きょ',k:'キョ'},{r:'sha',h:'しゃ',k:'シャ'},{r:'shu',h:'しゅ',k:'シュ'},{r:'sho',h:'しょ',k:'ショ'},{r:'cha',h:'ちゃ',k:'チャ'},{r:'chu',h:'ちゅ',k:'チュ'},{r:'cho',h:'ちょ',k:'チョ'},{r:'nya',h:'にゃ',k:'ニャ'},{r:'nyu',h:'にゅ',k:'ニュ'},{r:'nyo',h:'にょ',k:'ニョ'},{r:'hya',h:'ひゃ',k:'ヒャ'},{r:'hyu',h:'ひゅ',k:'ヒュ'},{r:'hyo',h:'ひょ',k:'ヒョ'},{r:'mya',h:'みゃ',k:'ミャ'},{r:'myu',h:'みゅ',k:'ミュ'},{r:'myo',h:'みょ',k:'ミョ'},{r:'rya',h:'りゃ',k:'リャ'},{r:'ryu',h:'りゅ',k:'リュ'},{r:'ryo',h:'りょ',k:'リョ'},{r:'gya',h:'ぎゃ',k:'ギャ'},{r:'gyu',h:'ぎゅ',k:'ギュ'},{r:'gyo',h:'ぎょ',k:'ギョ'},{r:'ja',h:'じゃ',k:'ジャ'},{r:'ju',h:'じゅ',k:'ジュ'},{r:'jo',h:'じょ',k:'ジョ'},{r:'bya',h:'びゃ',k:'ビャ'},{r:'byu',h:'びゅ',k:'ビュ'},{r:'byo',h:'びょ',k:'ビョ'},{r:'pya',h:'ぴゃ',k:'ピャ'},{r:'pyu',h:'ぴゅ',k:'ピュ'},{r:'pyo',h:'ぴょ',k:'ピョ'}] };
+
+        const QUESTIONS_LIMIT = 25;
+        let sessionData = { count: 0, correct: 0 };
+        let state = { category: 'seion', kanaType: 'h', inputMode: 'voice', currentCard: null, pool: [] };
+        let globalMistakes = JSON.parse(localStorage.getItem('gojuon_sakura_mistakes_app')) || {};
+        let recognition = null;
+        let isListening = false;
+        let speechRate = 1.0;
+        
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
+
+        window.onload = function() {
+            initPool();
+            nextQuestion();
+        };
+
+        function startVisualizer(stream) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            microphone = audioContext.createMediaStreamSource(stream);
+            javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+            analyser.smoothingTimeConstant = 0.8;
+            analyser.fftSize = 1024;
+            microphone.connect(analyser);
+            analyser.connect(javascriptNode);
+            javascriptNode.connect(audioContext.destination);
+            const bars = document.querySelectorAll('.visualizer-bar');
+            document.getElementById('visualizer').style.opacity = '1';
+
+            javascriptNode.onaudioprocess = function() {
+                var array = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(array);
+                var values = 0;
+                for (var i = 0; i < array.length; i++) values += array[i];
+                var average = values / array.length;
+                bars.forEach(bar => { bar.style.height = Math.min(5 + average * 2, 35) + 'px'; });
+            }
+        }
+
+        function stopVisualizer() {
+            if(javascriptNode) javascriptNode.disconnect();
+            if(microphone) microphone.disconnect();
+            if(analyser) analyser.disconnect();
+            if(audioContext) audioContext.close();
+            document.getElementById('visualizer').style.opacity = '0';
+        }
+
+        function initSpeech() {
+            // 檢查是否為手機內建瀏覽器
+            const isInApp = /Line|FB|Instagram/i.test(navigator.userAgent);
+            if (isInApp) {
+                logStatus("⚠️ 請點選右上角<br>用 Chrome/Safari 開啟");
+                return;
+            }
+
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ja-JP';
+                recognition.continuous = false;
+                recognition.interimResults = true; 
+                recognition.maxAlternatives = 5;
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('mic-btn').classList.add('listening');
+                    logStatus("👂 正在聆聽...<br>請看綠色聲波");
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(function(stream) { startVisualizer(stream); })
+                        .catch(function(err) { console.log(err); });
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    document.getElementById('mic-btn').classList.remove('listening');
+                    stopVisualizer();
+                    setTimeout(() => {
+                        const log = document.getElementById('status-log').innerText;
+                        if (log.includes("正在聆聽")) logStatus("❌ 沒聽到聲音<br>請靠近手機底部");
+                    }, 200);
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            checkAnswer(event.results[i][0].transcript);
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                            logStatus(`👂 檢測中: ${interimTranscript}`);
+                        }
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    isListening = false;
+                    stopVisualizer();
+                    document.getElementById('mic-btn').classList.remove('listening');
+                    if (event.error === 'no-speech') logStatus("❌ 沒聽到聲音");
+                    else if (event.error === 'not-allowed') logStatus("⛔ 麥克風被拒");
+                    else logStatus("⚠️ 錯誤: " + event.error);
+                };
+            } else {
+                alert("請使用 Chrome (Android) 或 Safari (iOS)");
+            }
+        }
+
+        function toggleSpeech() {
+            if(!recognition) initSpeech();
+            if(!recognition) return;
+            if (isListening) { recognition.stop(); } else { recognition.start(); }
+        }
+
+        function updateSpeed(v){ speechRate = parseFloat(v); document.getElementById('speed-display').innerText = speechRate + 'x'; }
+        function playAudio() { 
+            if(!state.currentCard) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(state.currentCard.h);
+            u.lang = 'ja-JP'; u.rate = speechRate;
+            window.speechSynthesis.speak(u); 
+        }
+        function logStatus(msg) { document.getElementById('status-log').innerHTML = msg; }
+        
+        function nextQuestion() {
+            if (sessionData.count >= QUESTIONS_LIMIT) { showResults(); return; }
+            sessionData.count++;
+            document.getElementById('progress-text').innerText = `${sessionData.count} / ${QUESTIONS_LIMIT}`;
+            const rand = Math.floor(Math.random() * state.pool.length);
+            state.currentCard = state.pool[rand];
+            updateCardUI();
+            document.getElementById('flashcard').classList.remove('wrong-shake');
+            document.getElementById('text-input').value = '';
+            if(state.inputMode==='voice') logStatus("點擊麥克風開始");
+        }
+
+        function updateCardUI() {
+            if(!state.currentCard) return;
+            const char = state.kanaType === 'h' ? state.currentCard.h : state.currentCard.k;
+            document.getElementById('kana-display').innerText = char;
+            document.getElementById('romaji-hint').innerText = state.currentCard.r;
+        }
+
+        function checkAnswer(inputRaw) {
+            const input = inputRaw.toLowerCase().replace(/[.。、!?\s]/g, '').trim();
+            const target = state.currentCard;
+            let isCorrect = false;
+            if(state.inputMode==='voice') {
+                if(input===target.h || input===target.k || input===target.r || input===target.r.replace('fu','hu') || input.includes(target.h)) isCorrect = true;
+            } else {
+                isCorrect = (input === target.r);
+            }
+
+            if(isCorrect) {
+                sessionData.correct++;
+                logStatus("✅ 正確！");
+                playAudio();
+                if(recognition) recognition.stop();
+                setTimeout(nextQuestion, 1000);
+            } else {
+                logStatus(`❌ 識別為: ${input}`);
+                document.getElementById('flashcard').classList.add('wrong-shake');
+                recordMistake(target);
+                if(recognition) recognition.stop();
+                setTimeout(nextQuestion, 1500);
+            }
+        }
+
+        function setCategory(cat, btn) { state.category=cat; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); restartSession(); }
+        function setInputMode(mode) { 
+            state.inputMode=mode; 
+            document.getElementById('btn-voice').className = mode==='voice'?'mode-btn active':'mode-btn';
+            document.getElementById('btn-type').className = mode==='type'?'mode-btn active':'mode-btn';
+            if(mode==='type'){ document.getElementById('mic-btn').style.display='none'; document.getElementById('text-input').style.display='block'; document.getElementById('visualizer').style.display='none';} 
+            else { document.getElementById('mic-btn').style.display='flex'; document.getElementById('text-input').style.display='none'; document.getElementById('visualizer').style.display='flex';}
+        }
+        function setKana(type, btn) { state.kanaType=type; btn.parentElement.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); updateCardUI(); }
+        document.getElementById('text-input').addEventListener('keyup', (e)=>{if(e.key==='Enter')checkAnswer(e.target.value)});
+
+        function recordMistake(card) {
+            const key = card.r;
+            if (!globalMistakes[key]) globalMistakes[key] = { count: 0, char: card.h, romaji: card.r };
+            globalMistakes[key].count++;
+            localStorage.setItem('gojuon_sakura_mistakes_app', JSON.stringify(globalMistakes));
+        }
+        function showResults() {
+            document.getElementById('practice-view').style.display='none'; document.getElementById('result-view').style.display='block';
+            document.getElementById('final-score').innerText = Math.round((sessionData.correct/QUESTIONS_LIMIT)*100);
+            const container = document.getElementById('ranking-container'); container.innerHTML='';
+            const sorted = Object.values(globalMistakes).sort((a,b)=>b.count-a.count).slice(0,20);
+            if(sorted.length===0) container.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#ccc">完美！</div>';
+            sorted.forEach(i=>{ container.innerHTML+=`<div class="rank-item"><div><span style="font-weight:bold;font-size:1.2rem">${i.char}</span> <span style="color:#999">${i.romaji}</span></div><span style="color:#e67e22">${i.count}次</span></div>`; });
+        }
+        function restartSession() { sessionData={count:0,correct:0}; initPool(); document.getElementById('practice-view').style.display='flex'; document.getElementById('result-view').style.display='none'; nextQuestion(); }
+    </script>
+</body>
+</html>
