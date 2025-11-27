@@ -2,169 +2,193 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日語五十音：櫻花語速特訓版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ff9a9e">
+    <title>日語五十音：語音學習機 (Pro)</title>
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/144/sakura.png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap');
 
         :root {
-            --primary: #ff9a9e;
+            --primary: #ff85a2;
             --primary-dark: #e84393;
             --text: #2d3436;
-            --glass: rgba(255, 255, 255, 0.88);
-            --glass-border: rgba(255, 255, 255, 0.6);
+            /* 優化二：高不透明度純白背景，不使用模糊 */
+            --card-bg: rgba(255, 255, 255, 0.93); 
             --success: #00b894;
             --error: #ff7675;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
             margin: 0;
             min-height: 100vh;
+            /* 使用 dvh 解決手機網址列遮擋問題 */
+            min-height: 100dvh; 
             display: flex;
             justify-content: center;
             align-items: center;
             color: var(--text);
-            overflow: hidden;
-            /* 4K 高畫質櫻花背景 */
-            background: url('https://images.unsplash.com/photo-1522383225653-ed111181a951?q=100&w=3200&auto=format&fit=crop') no-repeat center center fixed;
+            overflow-x: hidden;
+            overflow-y: auto;
+            /* 4K 清晰櫻花背景 */
+            background: url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=100&w=2800&auto=format&fit=crop') no-repeat center center fixed;
             background-size: cover;
         }
 
-        /* 🌸 櫻花特效 */
+        /* 櫻花飄落層 */
         #sakura-container {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 1;
-            overflow: hidden;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
         }
-
         .petal {
             position: absolute;
             background: linear-gradient(120deg, #ffc3a0 0%, #ffafbd 100%);
             border-radius: 150% 0 150% 0;
             animation: fall linear infinite;
             opacity: 0.9;
-            box-shadow: 0 0 5px rgba(255, 154, 158, 0.5);
+            box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
         }
-
         @keyframes fall {
-            0% { opacity: 0; transform: translate(0, -10vh) rotate(0deg) rotateX(0deg); }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { opacity: 0; transform: translate(100px, 110vh) rotate(720deg) rotateX(180deg); }
+            0% { opacity: 0; transform: translate(0, -10vh) rotate(0deg); }
+            100% { opacity: 0; transform: translate(80px, 110vh) rotate(360deg); }
         }
 
-        /* 主容器 */
+        /* 主容器：移除 backdrop-filter */
         .container {
             position: relative;
             z-index: 10;
-            background: var(--glass);
-            padding: 2rem;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            border: 1px solid var(--glass-border);
+            background: var(--card-bg);
+            padding: 1.2rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            border: 2px solid rgba(255, 255, 255, 1);
             width: 90%;
-            max-width: 500px;
+            max-width: 480px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            backdrop-filter: blur(8px);
+            margin: 20px auto;
         }
 
-        /* 介面元件 */
+        /* 標題與設定 */
         .header {
-            width: 100%; display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 1.5rem; border-bottom: 2px dashed #ffc3a0; padding-bottom: 10px;
+            width: 100%; display: flex; flex-direction: column; gap: 10px;
+            margin-bottom: 1rem; border-bottom: 2px dashed #ffc3a0; padding-bottom: 10px;
         }
-        h1 { font-size: 1.5rem; margin: 0; color: var(--primary-dark); text-shadow: 1px 1px 0 #fff; }
-        
-        .progress-badge {
-            background: linear-gradient(to right, #ff9a9e, #fecfef);
-            color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 0.9rem;
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        h1 { font-size: 1.4rem; margin: 0; color: var(--primary-dark); }
+        .progress-badge { background: linear-gradient(to right, #ff9a9e, #fecfef); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+
+        /* 關鍵優化：語音選擇器 */
+        .voice-settings {
+            width: 100%;
+            background: #fff0f5;
+            padding: 8px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .voice-label { font-size: 0.8rem; color: #d63031; font-weight: bold; }
+        select#voice-select {
+            width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ffb7b2;
+            background: white; color: #2d3436; font-size: 0.9rem;
         }
 
         /* 控制面板 */
-        .control-panel { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; align-items: center; }
-        
-        .category-scroll { display: flex; gap: 8px; overflow-x: auto; width: 100%; justify-content: center; padding-bottom: 5px; }
-        .chip { padding: 6px 14px; border-radius: 20px; background: white; border: 1px solid #ffc3a0; color: var(--text); font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.3s; }
-        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .control-panel { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .category-scroll { display: flex; gap: 6px; overflow-x: auto; width: 100%; justify-content: center; padding-bottom: 5px; }
+        .chip { padding: 6px 12px; border-radius: 20px; background: #fff; border: 1px solid #ffc3a0; color: var(--text); font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); transform: scale(1.05); font-weight: bold;}
 
-        /* 語速控制區 */
-        .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.5);
-            padding: 5px 15px;
-            border-radius: 20px;
-            width: 80%;
-            justify-content: center;
-            color: #636e72;
-            font-size: 0.9rem;
-            border: 1px solid #ffeaa7;
-        }
-        
-        input[type=range] {
-            -webkit-appearance: none; width: 100%; height: 6px; border-radius: 5px; background: #ffeaa7; outline: none;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; 
-            background: var(--primary); cursor: pointer; transition: .2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-
-        .toggle-group { display: flex; gap: 10px; background: white; padding: 4px 12px; border-radius: 20px; border: 1px solid #ffc3a0; }
-        .mode-btn { background: none; border: none; color: #b2bec3; cursor: pointer; font-weight: bold; font-size: 0.85rem; padding: 4px 8px; border-radius: 12px; transition: 0.3s; }
+        .toggle-group { display: flex; gap: 5px; background: #fff; padding: 4px 10px; border-radius: 20px; border: 1px solid #ffc3a0; }
+        .mode-btn { background: none; border: none; color: #b2bec3; cursor: pointer; font-weight: bold; font-size: 0.85rem; padding: 5px 12px; border-radius: 15px; transition: 0.2s; }
         .mode-btn.active { background: var(--primary-dark); color: white; }
 
         /* 卡片 */
         .flashcard {
-            width: 200px; height: 220px; background: white; border-radius: 24px;
+            width: 160px; height: 180px; background: white; border-radius: 20px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            box-shadow: 0 10px 25px rgba(255, 154, 158, 0.3); border: 4px solid white;
-            cursor: pointer; transition: transform 0.3s; margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(255, 154, 158, 0.25); border: 4px solid white;
+            cursor: pointer; transition: transform 0.2s; margin-bottom: 10px;
+            position: relative;
         }
-        .flashcard:hover { transform: translateY(-5px); border-color: #ffeaa7; }
+        .flashcard:active { transform: scale(0.95); }
         .flashcard.wrong-shake { border-color: var(--error); animation: shake 0.4s; }
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-8px);} 75% {transform: translateX(8px);} }
 
-        .kana-char { font-size: 5rem; font-weight: 700; color: var(--text); line-height: 1; }
-        .romaji-hint { font-size: 1.2rem; color: #fab1a0; margin-top: 10px; opacity: 0; transition: 0.3s; }
+        .kana-char { font-size: 4.5rem; font-weight: 700; color: var(--text); line-height: 1; }
+        .romaji-hint { font-size: 1.1rem; color: #fab1a0; margin-top: 5px; opacity: 0; transition: 0.3s; }
         .flashcard:hover .romaji-hint { opacity: 1; }
 
-        .input-section { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .status-log { font-size: 0.9rem; color: var(--primary-dark); min-height: 1.4rem; margin-bottom: 10px; font-weight: 500; background: rgba(255,255,255,0.6); padding: 2px 10px; border-radius: 8px; }
+        /* 優化一：綠色聲波條 (Visualizer) */
+        .input-section { width: 100%; display: flex; flex-direction: column; align-items: center; padding-bottom: 10px; }
         
-        .mic-btn { width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); border: none; color: white; font-size: 1.6rem; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 154, 158, 0.6); display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .mic-btn:hover { transform: scale(1.1); }
+        .visualizer-container {
+            width: 200px; height: 20px; display: flex; justify-content: center; align-items: flex-end; gap: 4px;
+            margin-bottom: 10px;
+        }
+        .visualizer-bar {
+            width: 6px; background-color: #dfe6e9; border-radius: 3px;
+            height: 4px; transition: height 0.05s ease-in-out, background-color 0.2s;
+        }
+        /* 當檢測到聲音時變綠 */
+        .visualizer-container.active .visualizer-bar { background-color: var(--success); }
+
+        /* 狀態提示 */
+        .status-log { 
+            font-size: 0.95rem; color: #636e72; min-height: 2.5rem; margin-bottom: 10px; 
+            font-weight: bold; background: #fff; padding: 8px 15px; 
+            border-radius: 12px; border: 2px solid #ffc3a0;
+            width: 100%; text-align: center; display: flex; align-items: center; justify-content: center;
+            line-height: 1.4;
+        }
+        
+        .mic-btn { 
+            width: 75px; height: 75px; border-radius: 50%; 
+            background: linear-gradient(135deg, #ff9a9e 0%, #ff7675 100%); 
+            border: 5px solid white; color: white; font-size: 2rem; cursor: pointer; 
+            box-shadow: 0 8px 25px rgba(255, 154, 158, 0.5); 
+            display: flex; align-items: center; justify-content: center; 
+            transition: 0.2s; -webkit-tap-highlight-color: transparent;
+        }
+        .mic-btn:active { transform: scale(0.9); }
         .mic-btn.listening { background: var(--error); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,118,117,0.7);} 70% {box-shadow: 0 0 0 15px rgba(0,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(0,0,0,0);} }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(214, 48, 49, 0.7);} 70% {box-shadow: 0 0 0 20px rgba(0,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(0,0,0,0);} }
 
-        input[type="text"] { width: 220px; padding: 10px 20px; font-size: 1.2rem; border: 2px solid #ffc3a0; border-radius: 50px; text-align: center; outline: none; transition: 0.3s; font-family: 'Zen Maru Gothic', sans-serif; }
-        input[type="text"]:focus { box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.3); border-color: var(--primary); }
+        input[type="text"] { width: 220px; padding: 10px 20px; font-size: 1.2rem; border: 2px solid #ffc3a0; border-radius: 50px; text-align: center; outline: none; font-family: 'Zen Maru Gothic', sans-serif; }
 
+        /* 結算 */
         #result-view { display: none; width: 100%; text-align: center; }
-        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: white; border: 4px solid #ff9a9e; margin: 0 auto 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--primary-dark); }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: white; border: 5px solid #ff85a2; margin: 0 auto 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--primary-dark); }
         .ranking-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 300px; overflow-y: auto; text-align: left; padding: 5px; }
-        .rank-item { background: white; padding: 8px 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .rank-item { background: white; padding: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
         .btn-action { width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 50px; background: var(--primary-dark); color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-
     </style>
 </head>
 <body>
 
-    <!-- 櫻花特效 -->
     <div id="sakura-container"></div>
 
     <div class="container">
-        <!-- 練習模式 -->
         <div id="practice-view" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
             <div class="header">
-                <h1>櫻花特訓 🌸</h1>
-                <div class="progress-badge" id="progress-text">1 / 25</div>
+                <div class="header-top">
+                    <h1>五十音語音機</h1>
+                    <div class="progress-badge" id="progress-text">1 / 25</div>
+                </div>
+                
+                <!-- 優化關鍵：語音選擇下拉選單 -->
+                <div class="voice-settings">
+                    <div class="voice-label">🔊 選擇發音人 (若沒聲音請切換)</div>
+                    <select id="voice-select" onchange="playAudio(true)">
+                        <option value="">載入語音中...</option>
+                    </select>
+                </div>
             </div>
 
             <div class="control-panel">
@@ -175,18 +199,10 @@
                     <div class="chip" onclick="setCategory('yoon', this)">拗音</div>
                     <div class="chip" onclick="setCategory('all', this)">全部</div>
                 </div>
-
-                <!-- 語速控制器 -->
-                <div class="speed-control">
-                    <span>🐢</span>
-                    <input type="range" min="0.5" max="1.5" step="0.1" value="1.0" oninput="updateSpeed(this.value)">
-                    <span id="speed-display" style="font-weight:bold; width:40px;">1.0x</span>
-                    <span>🐰</span>
-                </div>
-
+                
                 <div class="toggle-group">
-                    <button class="mode-btn active" id="btn-voice" onclick="setInputMode('voice')">🎤 語音</button>
-                    <button class="mode-btn" id="btn-type" onclick="setInputMode('type')">⌨️ 打字</button>
+                    <button class="mode-btn active" id="btn-voice" onclick="setInputMode('voice')">🎤 語音模式</button>
+                    <button class="mode-btn" id="btn-type" onclick="setInputMode('type')">⌨️ 打字模式</button>
                     <span>|</span>
                     <button class="mode-btn active" onclick="setKana('h', this)">平假名</button>
                     <button class="mode-btn" onclick="setKana('k', this)">片假名</button>
@@ -196,25 +212,29 @@
             <div class="flashcard" id="flashcard" onclick="playAudio()">
                 <div class="kana-char" id="kana-display">あ</div>
                 <div class="romaji-hint" id="romaji-hint">a</div>
-                <div style="font-size: 0.75rem; color: #b2bec3; position: absolute; bottom: 15px;">點擊播放發音 🔊</div>
+                <div style="font-size: 0.75rem; color: #b2bec3; position: absolute; bottom: 10px;">🔊 點擊聽發音</div>
             </div>
 
             <div class="input-section">
-                <div id="status-log" class="status-log">點擊麥克風開始</div>
+                <!-- 優化關鍵：綠色聲波條 -->
+                <div class="visualizer-container" id="visualizer">
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div>
+                    <div class="visualizer-bar"></div>
+                </div>
+                
+                <div id="status-log" class="status-log">準備就緒<br>請按麥克風按鈕</div>
                 <button id="mic-btn" class="mic-btn" onclick="toggleSpeech()">🎤</button>
-                <input type="text" id="text-input" style="display:none;" placeholder="輸入答案 (如: a)" autocomplete="off">
+                <input type="text" id="text-input" style="display:none;" placeholder="輸入羅馬拼音" autocomplete="off">
             </div>
         </div>
 
-        <!-- 結算模式 -->
         <div id="result-view">
             <h2 style="color:var(--primary-dark); margin-bottom:15px;">🌸 練習完成 🌸</h2>
             <div class="score-circle">
                 <span style="font-size:2.5rem; font-weight:bold;" id="final-score">0</span>
                 <span style="font-size:0.8rem;">最終得分</span>
-            </div>
-            <div style="text-align:left; width:100%; margin-bottom:8px; font-weight:bold; color:#636e72;">
-                🔥 錯題排行榜
             </div>
             <div class="ranking-list" id="ranking-container"></div>
             <button class="btn-action" onclick="restartSession()">再次挑戰</button>
@@ -222,257 +242,214 @@
     </div>
 
     <script>
-        // --- 🌸 櫻花加量版 (3x 數量) ---
+        // --- 櫻花特效 (高密度) ---
         function createSakura() {
-            const container = document.getElementById('sakura-container');
-            const petal = document.createElement('div');
-            petal.className = 'petal';
-            const startLeft = Math.random() * window.innerWidth;
-            const size = Math.random() * 12 + 6; 
-            const duration = Math.random() * 5 + 5; 
-            
-            petal.style.left = startLeft + 'px';
-            petal.style.width = size + 'px';
-            petal.style.height = size + 'px';
-            petal.style.animationDuration = duration + 's';
-            container.appendChild(petal);
-            setTimeout(() => { petal.remove(); }, duration * 1000);
+            const c = document.getElementById('sakura-container');
+            const p = document.createElement('div'); p.className = 'petal';
+            const size = Math.random()*12+8;
+            p.style.left = Math.random()*window.innerWidth+'px';
+            p.style.width = size+'px'; p.style.height = size+'px';
+            p.style.animationDuration = (Math.random()*5+4)+'s';
+            c.appendChild(p); setTimeout(()=>p.remove(), 9000);
         }
-        setInterval(createSakura, 80); // 80ms 生成一片
+        setInterval(createSakura, 100);
 
-        // --- 🎮 遊戲邏輯 ---
-        const gojuonDB = {
-            seion: [
-                { r: 'a', h: 'あ', k: 'ア' }, { r: 'i', h: 'い', k: 'イ' }, { r: 'u', h: 'う', k: 'ウ' }, { r: 'e', h: 'え', k: 'エ' }, { r: 'o', h: 'お', k: 'オ' },
-                { r: 'ka', h: 'か', k: 'カ' }, { r: 'ki', h: 'き', k: 'キ' }, { r: 'ku', h: 'く', k: 'ク' }, { r: 'ke', h: 'け', k: 'ケ' }, { r: 'ko', h: 'こ', k: 'コ' },
-                { r: 'sa', h: 'さ', k: 'サ' }, { r: 'shi', h: 'し', k: 'シ' }, { r: 'su', h: 'す', k: 'ス' }, { r: 'se', h: 'せ', k: 'セ' }, { r: 'so', h: 'そ', k: 'ソ' },
-                { r: 'ta', h: 'た', k: 'タ' }, { r: 'chi', h: 'ち', k: 'チ' }, { r: 'tsu', h: 'つ', k: 'ツ' }, { r: 'te', h: 'て', k: 'テ' }, { r: 'to', h: 'と', k: 'ト' },
-                { r: 'na', h: 'な', k: 'ナ' }, { r: 'ni', h: 'に', k: 'ニ' }, { r: 'nu', h: 'ぬ', k: 'ヌ' }, { r: 'ne', h: 'ね', k: 'ネ' }, { r: 'no', h: 'の', k: 'ノ' },
-                { r: 'ha', h: 'は', k: 'ハ' }, { r: 'hi', h: 'ひ', k: 'ヒ' }, { r: 'fu', h: 'ふ', k: 'フ' }, { r: 'he', h: 'へ', k: 'ヘ' }, { r: 'ho', h: 'ほ', k: 'ホ' },
-                { r: 'ma', h: 'ま', k: 'マ' }, { r: 'mi', h: 'み', k: 'ミ' }, { r: 'mu', h: 'む', k: 'ム' }, { r: 'me', h: 'め', k: 'メ' }, { r: 'mo', h: 'も', k: 'モ' },
-                { r: 'ya', h: 'や', k: 'ヤ' }, { r: 'yu', h: 'ゆ', k: 'ユ' }, { r: 'yo', h: 'よ', k: 'ヨ' },
-                { r: 'ra', h: 'ら', k: 'ラ' }, { r: 'ri', h: 'り', k: 'リ' }, { r: 'ru', h: 'る', k: 'ル' }, { r: 're', h: 'れ', k: 'レ' }, { r: 'ro', h: 'ろ', k: 'ロ' },
-                { r: 'wa', h: 'わ', k: 'ワ' }, { r: 'wo', h: 'を', k: 'ヲ' }, { r: 'n', h: 'ん', k: 'ン' }
-            ],
-            dakuon: [
-                { r: 'ga', h: 'が', k: 'ガ' }, { r: 'gi', h: 'ぎ', k: 'ギ' }, { r: 'gu', h: 'ぐ', k: 'グ' }, { r: 'ge', h: 'げ', k: 'ゲ' }, { r: 'go', h: 'ご', k: 'ゴ' },
-                { r: 'za', h: 'ざ', k: 'ザ' }, { r: 'ji', h: 'じ', k: 'ジ' }, { r: 'zu', h: 'ず', k: 'ズ' }, { r: 'ze', h: 'ぜ', k: 'ゼ' }, { r: 'zo', h: 'ぞ', k: 'ゾ' },
-                { r: 'da', h: 'だ', k: 'ダ' }, { r: 'ji', h: 'ぢ', k: 'ヂ' }, { r: 'zu', h: 'づ', k: 'ヅ' }, { r: 'de', h: 'で', k: 'デ' }, { r: 'do', h: 'ど', k: 'ド' },
-                { r: 'ba', h: 'ば', k: 'バ' }, { r: 'bi', h: 'び', k: 'ビ' }, { r: 'bu', h: 'ぶ', k: 'ブ' }, { r: 'be', h: 'べ', k: 'ベ' }, { r: 'bo', h: 'ぼ', k: 'ボ' }
-            ],
-            handakuon: [
-                { r: 'pa', h: 'ぱ', k: 'パ' }, { r: 'pi', h: 'ぴ', k: 'ピ' }, { r: 'pu', h: 'ぷ', k: 'プ' }, { r: 'pe', h: 'ぺ', k: 'ペ' }, { r: 'po', h: 'ぽ', k: 'ポ' }
-            ],
-            yoon: [
-                { r: 'kya', h: 'きゃ', k: 'キャ' }, { r: 'kyu', h: 'きゅ', k: 'キュ' }, { r: 'kyo', h: 'きょ', k: 'キョ' },
-                { r: 'sha', h: 'しゃ', k: 'シャ' }, { r: 'shu', h: 'しゅ', k: 'シュ' }, { r: 'sho', h: 'しょ', k: 'ショ' },
-                { r: 'cha', h: 'ちゃ', k: 'チャ' }, { r: 'chu', h: 'ちゅ', k: 'チュ' }, { r: 'cho', h: 'ちょ', k: 'チョ' },
-                { r: 'nya', h: 'にゃ', k: 'ニャ' }, { r: 'nyu', h: 'にゅ', k: 'ニュ' }, { r: 'nyo', h: 'にょ', k: 'ニョ' },
-                { r: 'hya', h: 'ひゃ', k: 'ヒャ' }, { r: 'hyu', h: 'ひゅ', k: 'ヒュ' }, { r: 'hyo', h: 'ひょ', k: 'ヒョ' },
-                { r: 'mya', h: 'みゃ', k: 'ミャ' }, { r: 'myu', h: 'みゅ', k: 'ミュ' }, { r: 'myo', h: 'みょ', k: 'ミョ' },
-                { r: 'rya', h: 'りゃ', k: 'リャ' }, { r: 'ryu', h: 'りゅ', k: 'リュ' }, { r: 'ryo', h: 'りょ', k: 'リョ' },
-                { r: 'gya', h: 'ぎゃ', k: 'ギャ' }, { r: 'gyu', h: 'ぎゅ', k: 'ギュ' }, { r: 'gyo', h: 'ぎょ', k: 'ギョ' },
-                { r: 'ja', h: 'じゃ', k: 'ジャ' }, { r: 'ju', h: 'じゅ', k: 'ジュ' }, { r: 'jo', h: 'じょ', k: 'ジョ' },
-                { r: 'bya', h: 'びゃ', k: 'ビャ' }, { r: 'byu', h: 'びゅ', k: 'ビュ' }, { r: 'byo', h: 'びょ', k: 'ビョ' },
-                { r: 'pya', h: 'ぴゃ', k: 'ピャ' }, { r: 'pyu', h: 'ぴゅ', k: 'ピュ' }, { r: 'pyo', h: 'ぴょ', k: 'ピョ' }
-            ]
-        };
+        // --- 核心邏輯與狀態 ---
+        const gojuonDB = { seion:[{r:'a',h:'あ',k:'ア'},{r:'i',h:'い',k:'イ'},{r:'u',h:'う',k:'ウ'},{r:'e',h:'え',k:'エ'},{r:'o',h:'お',k:'オ'},{r:'ka',h:'か',k:'カ'},{r:'ki',h:'き',k:'キ'},{r:'ku',h:'く',k:'ク'},{r:'ke',h:'け',k:'ケ'},{r:'ko',h:'こ',k:'コ'},{r:'sa',h:'さ',k:'サ'},{r:'shi',h:'し',k:'シ'},{r:'su',h:'す',k:'ス'},{r:'se',h:'せ',k:'セ'},{r:'so',h:'そ',k:'ソ'},{r:'ta',h:'た',k:'タ'},{r:'chi',h:'ち',k:'チ'},{r:'tsu',h:'つ',k:'ツ'},{r:'te',h:'て',k:'テ'},{r:'to',h:'と',k:'ト'},{r:'na',h:'な',k:'ナ'},{r:'ni',h:'に',k:'ニ'},{r:'nu',h:'ぬ',k:'ヌ'},{r:'ne',h:'ね',k:'ネ'},{r:'no',h:'の',k:'ノ'},{r:'ha',h:'は',k:'ハ'},{r:'hi',h:'ひ',k:'ヒ'},{r:'fu',h:'ふ',k:'フ'},{r:'he',h:'へ',k:'ヘ'},{r:'ho',h:'ほ',k:'ホ'},{r:'ma',h:'ま',k:'マ'},{r:'mi',h:'み',k:'ミ'},{r:'mu',h:'む',k:'ム'},{r:'me',h:'め',k:'メ'},{r:'mo',h:'も',k:'モ'},{r:'ya',h:'や',k:'ヤ'},{r:'yu',h:'ゆ',k:'ユ'},{r:'yo',h:'よ',k:'ヨ'},{r:'ra',h:'ら',k:'ラ'},{r:'ri',h:'り',k:'リ'},{r:'ru',h:'る',k:'ル'},{r:'re',h:'れ',k:'レ'},{r:'ro',h:'ろ',k:'ロ'},{r:'wa',h:'わ',k:'ワ'},{r:'wo',h:'を',k:'ヲ'},{r:'n',h:'ん',k:'ン'}], dakuon:[{r:'ga',h:'が',k:'ガ'},{r:'gi',h:'ぎ',k:'ギ'},{r:'gu',h:'ぐ',k:'グ'},{r:'ge',h:'げ',k:'ゲ'},{r:'go',h:'ご',k:'ゴ'},{r:'za',h:'ざ',k:'ザ'},{r:'ji',h:'じ',k:'ジ'},{r:'zu',h:'ず',k:'ズ'},{r:'ze',h:'ぜ',k:'ゼ'},{r:'zo',h:'ぞ',k:'ゾ'},{r:'da',h:'だ',k:'ダ'},{r:'ji',h:'ぢ',k:'ヂ'},{r:'zu',h:'づ',k:'ヅ'},{r:'de',h:'de',k:'デ'},{r:'do',h:'ど',k:'ド'},{r:'ba',h:'ば',k:'バ'},{r:'bi',h:'び',k:'ビ'},{r:'bu',h:'ぶ',k:'ブ'},{r:'be',h:'べ',k:'ベ'},{r:'bo',h:'ぼ',k:'ボ'}], handakuon:[{r:'pa',h:'ぱ',k:'パ'},{r:'pi',h:'ぴ',k:'ピ'},{r:'pu',h:'ぷ',k:'プ'},{r:'pe',h:'ぺ',k:'ペ'},{r:'po',h:'ぽ',k:'ポ'}], yoon:[{r:'kya',h:'きゃ',k:'キャ'},{r:'kyu',h:'きゅ',k:'キュ'},{r:'kyo',h:'きょ',k:'キョ'},{r:'sha',h:'しゃ',k:'シャ'},{r:'shu',h:'しゅ',k:'シュ'},{r:'sho',h:'しょ',k:'ショ'},{r:'cha',h:'ちゃ',k:'チャ'},{r:'chu',h:'ちゅ',k:'チュ'},{r:'cho',h:'ちょ',k:'チョ'},{r:'nya',h:'にゃ',k:'ニャ'},{r:'nyu',h:'にゅ',k:'ニュ'},{r:'nyo',h:'にょ',k:'ニョ'},{r:'hya',h:'ひゃ',k:'ヒャ'},{r:'hyu',h:'ひゅ',k:'ヒュ'},{r:'hyo',h:'ひょ',k:'ヒョ'},{r:'mya',h:'みゃ',k:'ミャ'},{r:'myu',h:'みゅ',k:'ミュ'},{r:'myo',h:'みょ',k:'ミョ'},{r:'rya',h:'りゃ',k:'リャ'},{r:'ryu',h:'りゅ',k:'リュ'},{r:'ryo',h:'りょ',k:'リョ'},{r:'gya',h:'ぎゃ',k:'ギャ'},{r:'gyu',h:'ぎゅ',k:'ギュ'},{r:'gyo',h:'ぎょ',k:'ギョ'},{r:'ja',h:'じゃ',k:'ジャ'},{r:'ju',h:'じゅ',k:'ジュ'},{r:'jo',h:'じょ',k:'ジョ'},{r:'bya',h:'びゃ',k:'ビャ'},{r:'byu',h:'びゅ',k:'ビュ'},{r:'byo',h:'びょ',k:'ビョ'},{r:'pya',h:'ぴゃ',k:'ピャ'},{r:'pyu',h:'ぴゅ',k:'ピュ'},{r:'pyo',h:'ぴょ',k:'ピョ'}] };
 
         const QUESTIONS_LIMIT = 25;
         let sessionData = { count: 0, correct: 0 };
         let state = { category: 'seion', kanaType: 'h', inputMode: 'voice', currentCard: null, pool: [] };
-        let globalMistakes = JSON.parse(localStorage.getItem('gojuon_sakura_mistakes_v2')) || {};
+        let globalMistakes = JSON.parse(localStorage.getItem('gojuon_sakura_mistakes_v3')) || {};
         let recognition = null;
         let isListening = false;
-        let speechRate = 1.0; // 語速狀態
+        
+        // Audio Context (Visualizer + iOS Wakeup)
+        let audioContext;
+        let analyser;
+        let microphone;
+        let javascriptNode;
 
-        window.onload = function() {
-            initPool();
-            initSpeech();
-            nextQuestion();
-        };
+        // TTS Voices
+        let voices = [];
+        const synth = window.speechSynthesis;
 
-        function initPool() {
-            if(state.category === 'all') {
-                state.pool = [...gojuonDB.seion, ...gojuonDB.dakuon, ...gojuonDB.handakuon, ...gojuonDB.yoon];
+        // --- 1. 語音合成 (TTS) 優化：發音人選擇 ---
+        function populateVoiceList() {
+            voices = synth.getVoices().sort((a, b) => {
+                const aname = a.name.toUpperCase(), bname = b.name.toUpperCase();
+                if ( aname < bname ) return -1;
+                else if ( aname == bname ) return 0;
+                return +1;
+            });
+
+            const select = document.getElementById("voice-select");
+            select.innerHTML = '';
+
+            // 優先尋找日語發音
+            let defaultIndex = 0;
+            // 過濾只顯示日語相關，或者主要的幾個
+            const jaVoices = voices.filter(v => v.lang.includes('ja') || v.lang.includes('JP'));
+            
+            if(jaVoices.length === 0) {
+                 // 如果沒有日語，顯示全部
+                 voices.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    option.value = index; // Store original index
+                    select.appendChild(option);
+                 });
             } else {
-                state.pool = gojuonDB[state.category];
+                jaVoices.forEach((voice) => {
+                    const option = document.createElement('option');
+                    option.textContent = `${voice.name}`;
+                    // Find original index
+                    const originalIndex = voices.indexOf(voice);
+                    option.value = originalIndex;
+                    if(voice.default) defaultIndex = originalIndex;
+                    select.appendChild(option);
+                });
+            }
+            // 嘗試選中 Google 日本語 或 系統預設
+            const googleJa = voices.findIndex(v => v.name.includes("Google") && v.lang.includes("ja"));
+            if(googleJa !== -1) select.value = googleJa;
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        function playAudio(isTest = false) {
+            if(!state.currentCard && !isTest) return;
+            synth.cancel(); // 停止當前
+            
+            const text = isTest ? "こんにちは" : state.currentCard.h;
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'ja-JP';
+            u.rate = 0.9; // 稍微慢一點適合學習
+
+            const select = document.getElementById("voice-select");
+            if(select.value) {
+                u.voice = voices[select.value];
+            }
+
+            synth.speak(u);
+        }
+
+        // --- 2. 麥克風與視覺化 (Visualizer) ---
+        function startVisualizer(stream) {
+            if(audioContext) { audioContext.close(); } // Reset
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            microphone = audioContext.createMediaStreamSource(stream);
+            javascriptNode = audioContext.createScriptProcessor(1024, 1, 1);
+
+            analyser.smoothingTimeConstant = 0.8;
+            analyser.fftSize = 512;
+
+            microphone.connect(analyser);
+            analyser.connect(javascriptNode);
+            javascriptNode.connect(audioContext.destination);
+
+            const bars = document.querySelectorAll('.visualizer-bar');
+            const container = document.getElementById('visualizer');
+            
+            javascriptNode.onaudioprocess = function() {
+                var array = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(array);
+                var values = 0;
+                var length = array.length;
+                for (var i = 0; i < length; i++) values += array[i];
+                var average = values / length;
+
+                // 視覺化邏輯：如果有聲音，average 會大於 10~20
+                if (average > 10) container.classList.add('active');
+                else container.classList.remove('active');
+
+                bars.forEach((bar, index) => {
+                    // 簡單的波形模擬
+                    let h = Math.max(4, average * (1 + Math.random()));
+                    bar.style.height = Math.min(h, 20) + 'px'; 
+                });
             }
         }
 
+        function stopVisualizer() {
+            if(javascriptNode) javascriptNode.disconnect();
+            if(microphone) microphone.disconnect();
+            if(analyser) analyser.disconnect();
+            // Don't close context immediately to avoid lag on restart
+            document.getElementById('visualizer').classList.remove('active');
+            document.querySelectorAll('.visualizer-bar').forEach(b => b.style.height = '4px');
+        }
+
+        // --- 3. 語音識別核心 (SpeechRecognition) ---
         function initSpeech() {
+            // 檢查 Line/FB 內建瀏覽器 (通常不支援)
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            if (/Line|FBAN|FBAV|Instagram/.test(userAgent)) {
+                logStatus("❌ 請點選右上角，換成 Chrome 或 Safari 開啟");
+                return;
+            }
+
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
+                
+                // 嚴格遵守優化要求：
                 recognition.lang = 'ja-JP';
                 recognition.continuous = false;
-                recognition.interimResults = false;
+                recognition.interimResults = true; // 關鍵：即時回饋
+                recognition.maxAlternatives = 1;
 
                 recognition.onstart = () => {
                     isListening = true;
                     document.getElementById('mic-btn').classList.add('listening');
-                    logStatus("🌸 聆聽中...");
+                    logStatus("👂 聆聽中...請看上方綠條是否有跳動");
+                    
+                    // 啟動 Visualizer 串流
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => startVisualizer(stream))
+                        .catch(e => console.error("Mic Visualizer Error", e));
                 };
+
                 recognition.onend = () => {
                     isListening = false;
                     document.getElementById('mic-btn').classList.remove('listening');
+                    stopVisualizer();
+                    // 延遲判斷是否完全沒聲音
+                    setTimeout(() => {
+                        const txt = document.getElementById('status-log').innerText;
+                        if(txt.includes("聆聽中")) {
+                            logStatus("❌ 未檢測到語音 (請靠近話筒)");
+                        }
+                    }, 300);
                 };
-                recognition.onresult = (e) => {
-                    const transcript = e.results[0][0].transcript;
-                    checkAnswer(transcript);
+
+                recognition.onresult = (event) => {
+                    let interim = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            checkAnswer(event.results[i][0].transcript);
+                        } else {
+                            interim += event.results[i][0].transcript;
+                            logStatus(`... ${interim}`); // 顯示正在聽到的內容
+                        }
+                    }
                 };
+
+                recognition.onerror = (event) => {
+                    isListening = false;
+                    stopVisualizer();
+                    document.getElementById('mic-btn').classList.remove('listening');
+                    if (event.error === 'no-speech') logStatus("❌ 沒聽到聲音");
+                    else if (event.error === 'not-allowed') logStatus("⛔ 麥克風權限被拒");
+                    else logStatus("⚠️ 錯誤: " + event.error);
+                };
+            } else {
+                alert("此瀏覽器不支援語音，請使用 Chrome/Safari");
             }
         }
 
         function toggleSpeech() {
-            if(!recognition) return alert("請使用 Chrome 瀏覽器");
-            if(isListening) recognition.stop();
-            else recognition.start();
-        }
-
-        // 更新語速
-        function updateSpeed(val) {
-            speechRate = parseFloat(val);
-            document.getElementById('speed-display').innerText = speechRate + 'x';
-        }
-
-        // 播放音頻 (支援語速)
-        function playAudio() {
-            if(!state.currentCard) return;
-            window.speechSynthesis.cancel(); // 停止當前發音
-            const u = new SpeechSynthesisUtterance(state.currentCard.h);
-            u.lang = 'ja-JP';
-            u.rate = speechRate; // 應用語速
-            window.speechSynthesis.speak(u);
-        }
-
-        function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
-
-        function setCategory(cat, btn) {
-            state.category = cat;
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            restartSession();
-        }
-
-        function setInputMode(mode) {
-            state.inputMode = mode;
-            document.getElementById('btn-voice').className = mode === 'voice' ? 'mode-btn active' : 'mode-btn';
-            document.getElementById('btn-type').className = mode === 'type' ? 'mode-btn active' : 'mode-btn';
-            const mic = document.getElementById('mic-btn');
-            const input = document.getElementById('text-input');
-
-            if(mode === 'type') {
-                mic.style.display = 'none'; input.style.display = 'block'; input.focus();
-                logStatus("⌨️ 輸入後按 Enter");
-            } else {
-                mic.style.display = 'flex'; input.style.display = 'none';
-                logStatus("🌸 點擊麥克風開始");
-            }
-        }
-
-        function setKana(type, btn) {
-            state.kanaType = type;
-            btn.parentElement.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            updateCardUI();
-        }
-
-        function nextQuestion() {
-            if (sessionData.count >= QUESTIONS_LIMIT) {
-                showResults();
-                return;
-            }
-            sessionData.count++;
-            document.getElementById('progress-text').innerText = `${sessionData.count} / ${QUESTIONS_LIMIT}`;
-            const rand = Math.floor(Math.random() * state.pool.length);
-            state.currentCard = state.pool[rand];
-            updateCardUI();
-            document.getElementById('flashcard').classList.remove('wrong-shake');
-            document.getElementById('text-input').value = '';
-        }
-
-        function updateCardUI() {
-            if(!state.currentCard) return;
-            const char = state.kanaType === 'h' ? state.currentCard.h : state.currentCard.k;
-            const div = document.getElementById('kana-display');
-            div.innerText = char;
-            div.style.fontSize = char.length > 1 ? '4rem' : '6rem';
-            document.getElementById('romaji-hint').innerText = state.currentCard.r;
-        }
-
-        function checkAnswer(inputRaw) {
-            const input = inputRaw.toLowerCase().replace(/[.。\s]/g, '').trim();
-            const target = state.currentCard;
-            let isCorrect = false;
-
-            if (state.inputMode === 'voice') {
-                isCorrect = (input === target.h || input === target.k || input === target.r || input === target.r.replace('fu', 'hu'));
-            } else {
-                isCorrect = (input === target.r);
-            }
-
-            if (isCorrect) {
-                sessionData.correct++;
-                logStatus("✅ 正確！");
-                playAudio();
-                setTimeout(nextQuestion, 800);
-            } else {
-                logStatus(`❌ 答案是 ${target.r}`);
-                document.getElementById('flashcard').classList.add('wrong-shake');
-                recordMistake(target);
-                setTimeout(nextQuestion, 1500);
-            }
-        }
-
-        document.getElementById('text-input').addEventListener('keyup', (e) => {
-            if(e.key === 'Enter') checkAnswer(e.target.value);
-        });
-
-        function recordMistake(card) {
-            const key = card.r;
-            if (!globalMistakes[key]) globalMistakes[key] = { count: 0, char: card.h, romaji: card.r };
-            globalMistakes[key].count++;
-            localStorage.setItem('gojuon_sakura_mistakes_v2', JSON.stringify(globalMistakes));
-        }
-
-        function showResults() {
-            document.getElementById('practice-view').style.display = 'none';
-            document.getElementById('result-view').style.display = 'block';
-            const score = Math.round((sessionData.correct / QUESTIONS_LIMIT) * 100);
-            document.getElementById('final-score').innerText = score;
-            renderRanking();
-        }
-
-        function renderRanking() {
-            const container = document.getElementById('ranking-container');
-            container.innerHTML = '';
-            const sorted = Object.values(globalMistakes).sort((a, b) => b.count - a.count).slice(0, 20);
-
-            if (sorted.length === 0) {
-                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#b2bec3;">🌸 完美！目前沒有錯題記錄</div>';
-                return;
-            }
-            sorted.forEach((item) => {
-                const html = `
-                    <div class="rank-item">
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <span style="font-size:1.2rem; font-weight:bold;">${item.char}</span>
-                            <span style="color:#b2bec3; font-size:0.9rem;">${item.romaji}</span>
-                        </div>
-                        <span style="background:#ffeaa7; padding:2px 8px; border-radius:10px; font-size:0.8rem; color:#d35400;">${item.count}次</span>
-                    </div>`;
-                container.innerHTML += html;
-            });
-        }
-
-        function restartSession() {
-            sessionData = { count: 0, correct: 0 };
-            initPool();
-            document.getElementById('practice-view').style.display = 'flex';
-            document.getElementById('result-view').style.display = 'none';
-            nextQuestion();
-        }
-    </script>
-</body>
-</html>
+            if(!recognition) initSpeech();
