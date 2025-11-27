@@ -3,561 +3,582 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌸 五十音語音練習機 - 櫻花豪華版 🎙</title>
+    <title>日語五十音：櫻花語音修復版</title>
     <style>
-        /* --------------------------------- */
-        /* #1. 背景與櫻花動畫 (4K 視覺效果) */
-        /* --------------------------------- */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap');
+
+        :root {
+            --primary: #ff9a9e;
+            --primary-dark: #e84393;
+            --text: #2d3436;
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --success: #00b894;
+            --error: #ff7675;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            padding: 50px 20px;
+            font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
             margin: 0;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            position: relative; /* 用於背景定位 */
-            overflow: hidden; /* 防止櫻花動畫超出視窗導致滾動條 */
-            color: #333;
-        }
-
-        /* 4K 櫻花背景模擬 */
-        .background-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: url('https://source.unsplash.com/random/3840x2160?cherry+blossom+tree+no+filter') no-repeat center center; /* 模擬高畫質櫻花背景 */
+            color: var(--text);
+            overflow: hidden;
+            /* 4K 高畫質櫻花背景 */
+            background: url('https://images.unsplash.com/photo-1522383225653-ed111181a951?q=100&w=3200&auto=format&fit=crop') no-repeat center center fixed;
             background-size: cover;
         }
 
-        /* 櫻花飄落動畫 */
-        .sakura-fall {
+        /* 🌸櫻花特效 */
+        #sakura-container {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
         }
 
-        .sakura-fall i {
-            display: block;
+        .petal {
             position: absolute;
-            background: #ffb7c5; /* 櫻花粉色 */
-            border-radius: 50%;
-            width: 8px;
-            height: 8px;
-            opacity: 0.8;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            background: linear-gradient(120deg, #ffc3a0 0%, #ffafbd 100%);
+            border-radius: 150% 0 150% 0;
             animation: fall linear infinite;
+            opacity: 0.9;
+            box-shadow: 0 0 5px rgba(255, 154, 158, 0.5);
         }
 
         @keyframes fall {
-            0% { transform: translateY(-10vh) translateX(0) rotateZ(0deg); opacity: 0; }
+            0% { opacity: 0; transform: translate(0, -10vh) rotate(0deg) rotateX(0deg); }
             10% { opacity: 1; }
-            100% { transform: translateY(100vh) translateX(5vw) rotateZ(180deg); opacity: 0.8; }
+            90% { opacity: 1; }
+            100% { opacity: 0; transform: translate(100px, 110vh) rotate(720deg) rotateX(180deg); }
         }
 
-        /* 隨機生成櫻花落葉樣式 (JS會生成) */
-        /* --------------------------------- */
-        /* #2. 介面樣式 */
-        /* --------------------------------- */
-        .app-container {
-            background-color: rgba(255, 255, 255, 0.85); /* 半透明白底，突出內容 */
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            max-width: 600px;
+        /* 主容器 */
+        .container {
+            position: relative;
+            z-index: 10;
+            background: var(--glass);
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
             width: 90%;
-            backdrop-filter: blur(5px); /* 輕微模糊背景 */
-            -webkit-backdrop-filter: blur(5px);
-        }
-
-        h1 {
-            color: #c90076; /* 櫻花主題色 */
-            margin-bottom: 30px;
-        }
-
-        #display-char { 
-            font-size: 150px; 
-            font-weight: 900; 
-            color: #d82c2c; /* 醒目紅色 */
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        #recognized-result { 
-            font-size: 20px; 
-            color: #007bff; 
-            min-height: 30px;
-            margin-bottom: 15px;
-        }
-
-        .status-message { 
-            font-size: 20px; 
-            margin-top: 20px; 
-            padding: 10px; 
-            border-radius: 8px; 
-            transition: all 0.3s;
-        }
-
-        .correct { 
-            color: #28a745; 
-            background-color: #d4edda; 
-            border: 1px solid #c3e6cb; 
-        }
-
-        .incorrect { 
-            color: #dc3545; 
-            background-color: #f8d7da; 
-            border: 1px solid #f5c6cb; 
-        }
-
-        .listening {
-            color: #ff9800;
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-        }
-
-        button { 
-            padding: 12px 25px; 
-            font-size: 18px; 
-            cursor: pointer; 
-            border: none; 
-            border-radius: 25px; 
-            background-color: #c90076; 
-            color: white; 
-            transition: background-color 0.3s, transform 0.1s; 
-            margin: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        button:hover:not(:disabled) {
-            background-color: #a0005d;
-            transform: translateY(-2px);
-        }
-
-        button:disabled { 
-            background-color: #cccccc; 
-            cursor: not-allowed; 
-            box-shadow: none;
-        }
-
-        /* --------------------------------- */
-        /* #3. 語音視覺化 (Voice Visualizer) */
-        /* --------------------------------- */
-        #visualizer-container {
-            height: 20px;
-            width: 100%;
-            margin: 15px auto;
+            max-width: 500px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
         }
 
-        #visualizer-bar {
-            width: 0%;
-            height: 100%;
-            background-color: #4caf50; /* 綠色聲波條 */
-            transition: width 0.05s linear;
+        /* 介面元件 */
+        .header {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem; border-bottom: 2px dashed #ffc3a0; padding-bottom: 10px;
+        }
+        h1 { font-size: 1.5rem; margin: 0; color: var(--primary-dark); text-shadow: 1px 1px 0 #fff; }
+        
+        .progress-badge {
+            background: linear-gradient(to right, #ff9a9e, #fecfef);
+            color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold; font-size: 0.9rem;
+        }
+
+        /* 控制面板 */
+        .control-panel { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; align-items: center; }
+        
+        .category-scroll { display: flex; gap: 8px; overflow-x: auto; width: 100%; justify-content: center; padding-bottom: 5px; }
+        .chip { padding: 6px 14px; border-radius: 20px; background: white; border: 1px solid #ffc3a0; color: var(--text); font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* 語速控制區 */
+        .speed-control {
+            display: flex; align-items: center; gap: 10px; background: rgba(255, 255, 255, 0.5);
+            padding: 5px 15px; border-radius: 20px; width: 80%; justify-content: center;
+            color: #636e72; font-size: 0.9rem; border: 1px solid #ffeaa7;
+        }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 5px; background: #dfe6e9; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: .2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        .toggle-group { display: flex; gap: 10px; background: white; padding: 4px 12px; border-radius: 20px; border: 1px solid #ffc3a0; }
+        .mode-btn { background: none; border: none; color: #b2bec3; cursor: pointer; font-weight: bold; font-size: 0.85rem; padding: 4px 8px; border-radius: 12px; transition: 0.3s; }
+        .mode-btn.active { background: var(--primary-dark); color: white; }
+
+        /* 卡片 */
+        .flashcard {
+            width: 200px; height: 220px; background: white; border-radius: 24px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 10px 25px rgba(255, 154, 158, 0.3); border: 4px solid white;
+            cursor: pointer; transition: transform 0.3s; margin-bottom: 20px;
+        }
+        .flashcard:hover { transform: translateY(-5px); border-color: #ffeaa7; }
+        .flashcard.wrong-shake { border-color: var(--error); animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+        .kana-char { font-size: 5rem; font-weight: 700; color: var(--text); line-height: 1; }
+        .romaji-hint { font-size: 1.2rem; color: #fab1a0; margin-top: 10px; opacity: 0; transition: 0.3s; }
+        .flashcard:hover .romaji-hint { opacity: 1; }
+
+        .input-section { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* 狀態顯示增強 */
+        .status-log { 
+            font-size: 1rem; color: #636e72; min-height: 1.6rem; margin-bottom: 15px; 
+            font-weight: bold; background: rgba(255,255,255,0.8); padding: 8px 20px;
+            border-radius: 15px; border: 1px solid #ffc3a0;
+            width: 80%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         
-        /* --------------------------------- */
-        /* #4. 語音設定面板 */
-        /* --------------------------------- */
-        .controls {
-            margin-top: 20px;
-            padding: 10px;
-            border-top: 1px solid #ddd;
+        .mic-btn {
+            width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); border: none; color: white;
+            font-size: 1.8rem; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 154, 158, 0.6); display: flex; align-items: center; justify-content: center; transition: 0.3s;
         }
+        .mic-btn:hover { transform: scale(1.1); }
+        .mic-btn.listening { background: var(--error); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(255,118,117,0.7);} 70% {box-shadow: 0 0 0 20px rgba(0,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(0,0,0,0);} }
 
-        .control-group {
-            display: inline-block;
-            margin: 0 10px;
-        }
+        input[type="text"] { width: 220px; padding: 12px 20px; font-size: 1.2rem; border: 2px solid #ffc3a0; border-radius: 50px; text-align: center; outline: none; transition: 0.3s; font-family: 'Zen Maru Gothic', sans-serif; }
+        input[type="text"]:focus { box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.3); border-color: var(--primary); }
 
-        label {
-            font-size: 14px;
-            color: #666;
-            margin-right: 5px;
-        }
-
-        select {
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
-
+        #result-view { display: none; width: 100%; text-align: center; }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: white; border: 4px solid #ff9a9e; margin: 0 auto 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--primary-dark); }
+        .ranking-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 300px; overflow-y: auto; text-align: left; padding: 5px; }
+        .rank-item { background: white; padding: 8px 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-action { width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 50px; background: var(--primary-dark); color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="background-container"></div>
-    <div class="sakura-fall" id="sakura-fall-container"></div>
 
-    <div class="app-container">
-        <h1>🎙 五十音發音測驗 (櫻花版)</h1>
-        
-        <div id="display-char">點擊開始</div>
-        
-        <div id="visualizer-container">
-            <div id="visualizer-bar"></div>
+    <div id="sakura-container"></div>
+
+    <div class="container">
+        <div id="practice-view" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="header">
+                <h1>櫻花特訓 🌸</h1>
+                <div class="progress-badge" id="progress-text">1 / 25</div>
+            </div>
+
+            <div class="control-panel">
+                <div class="category-scroll">
+                    <div class="chip active" onclick="setCategory('seion', this)">清音</div>
+                    <div class="chip" onclick="setCategory('dakuon', this)">濁音</div>
+                    <div class="chip" onclick="setCategory('handakuon', this)">半濁音</div>
+                    <div class="chip" onclick="setCategory('yoon', this)">拗音</div>
+                    <div class="chip" onclick="setCategory('all', this)">全部</div>
+                </div>
+
+                <div class="speed-control">
+                    <span>🐢</span>
+                    <input type="range" min="0.5" max="1.5" step="0.1" value="1.0" oninput="updateSpeed(this.value)">
+                    <span id="speed-display" style="font-weight:bold; width:40px;">1.0x</span>
+                    <span>🐰</span>
+                </div>
+
+                <div class="toggle-group">
+                    <button class="mode-btn active" id="btn-voice" onclick="setInputMode('voice')">🎤 語音</button>
+                    <button class="mode-btn" id="btn-type" onclick="setInputMode('type')">⌨️ 打字</button>
+                    <span>|</span>
+                    <button class="mode-btn active" onclick="setKana('h', this)">平假名</button>
+                    <button class="mode-btn" onclick="setKana('k', this)">片假名</button>
+                </div>
+            </div>
+
+            <div class="flashcard" id="flashcard" onclick="playAudio()">
+                <div class="kana-char" id="kana-display">あ</div>
+                <div class="romaji-hint" id="romaji-hint">a</div>
+                <div style="font-size: 0.75rem; color: #b2bec3; position: absolute; bottom: 15px;">點擊播放發音 🔊</div>
+            </div>
+
+            <div class="input-section">
+                <div id="status-log" class="status-log">準備就緒，點擊麥克風</div>
+                 
+                <button id="mic-btn" class="mic-btn" onclick="toggleSpeech()">🎤</button>
+                <input type="text" id="text-input" style="display:none;" placeholder="輸入答案 (如: a)" autocomplete="off">
+            </div>
         </div>
 
-        <p class="status-message" id="status">準備好了嗎？點擊「開始」按鈕！</p>
-        <p id="recognized-result">（語音識別結果）</p>
-        
-        <button id="pronounce-btn">🔊 聽標準發音</button>
-        <button id="start-btn">開始測驗</button>
-
-        <div class="controls">
-            <div class="control-group">
-                <label for="voice-gender">語音性別:</label>
-                <select id="voice-gender">
-                    <option value="female">女性 (標準)</option>
-                    <option value="male">男性 (標準)</option>
-                    <option value="premium_female">女性 (優質/Neural)</option>
-                    <option value="premium_male">男性 (優質/Neural)</option>
-                </select>
+        <div id="result-view">
+            <h2 style="color:var(--primary-dark); margin-bottom:15px;">🌸練習完成 🌸</h2>
+            <div class="score-circle">
+                <span style="font-size:2.5rem; font-weight:bold;" id="final-score">0</span>
+                <span style="font-size:0.8rem;">最終得分</span>
             </div>
+            <div style="text-align:left; width:100%; margin-bottom:8px; font-weight:bold; color:#636e72;">
+                🔥錯題排行榜
+            </div>
+            <div class="ranking-list" id="ranking-container"></div>
+            <button class="btn-action" onclick="restartSession()">再次挑戰</button>
         </div>
     </div>
 
-<script>
-    // ---------------------------------
-    // 五十音資料與核心變數
-    // ---------------------------------
-    const startBtn = document.getElementById('start-btn');
-    const pronounceBtn = document.getElementById('pronounce-btn');
-    const displayChar = document.getElementById('display-char');
-    const statusMessage = document.getElementById('status');
-    const recognizedResult = document.getElementById('recognized-result');
-    const visualizerBar = document.getElementById('visualizer-bar');
-    const voiceGenderSelect = document.getElementById('voice-gender');
+    <script>
+        // --- 🌸櫻花特效 ---
+        function createSakura() {
+            const container = document.getElementById('sakura-container');
+            const petal = document.createElement('div');
+            petal.className = 'petal';
+            const startLeft = Math.random() * window.innerWidth;
+            const size = Math.random() * 12 + 6; 
+            const duration = Math.random() * 5 + 5; 
+            
+            petal.style.left = startLeft + 'px';
+            petal.style.width = size + 'px';
+            petal.style.height = size + 'px';
+            petal.style.animationDuration = duration + 's';
+            container.appendChild(petal);
+            setTimeout(() => { petal.remove(); }, duration * 1000);
+        }
+        setInterval(createSakura, 80);
 
-    const HINTS = [
-        'あ', 'い', 'いい', 'う', 'え', 'ええ', 'お', 
-        'か', 'き', 'く', 'け', 'こ',
-        'さ', 'し', 'す', 'せ', 'そ',
-        'た', 'ち', 'つ', 'て', 'と',
-        'な', 'に', 'ぬ', 'ね', 'の',
-        'は', 'ひ', 'ふ', 'へ', 'ほ',
-        'ま', 'み', 'む', 'め', 'も',
-        'や', 'ゆ', 'よ', 'ら', 'り', 'る', 'れ', 'ろ',
-        'わ', 'を', 'ん', 'ン', 'イ', 'ウ', 'エ', 'オ' // 擴大提示，包括片假名
-    ];
-    
-    const ALL_HIRAGANA_CHARS = [
-        'あ', 'い', 'う', 'え', 'お', 'か', 'き', 'く', 'け', 'こ',
-        'さ', 'し', 'す', 'せ', 'そ', 'た', 'ち', 'つ', 'て', 'と',
-        'な', 'に', 'ぬ', 'ね', 'の', 'は', 'ひ', 'ふ', 'へ', 'ほ',
-        'ま', 'み', 'む', 'め', 'も', 'や', 'ゆ', 'よ', 'ら', 'り', 'る', 'れ', 'ろ',
-        'わ', 'を', 'ん'
-    ];
-
-    let currentTargetChar = '';
-    let isListening = false;
-    
-    // ---------------------------------
-    // #A. 語音辨識 (Web Speech API)
-    // ---------------------------------
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-        statusMessage.textContent = '❌ 抱歉，您的瀏覽器不支援 Web Speech API。請使用 Chrome 或 Edge。';
-        startBtn.disabled = true;
-    } else {
-        const recognition = new SpeechRecognition();
+        // --- 🎮遊戲邏輯與資料庫 ---
+        const gojuonDB = {
+            seion: [
+                { r: 'a', h: 'あ', k: 'ア' }, { r: 'i', h: 'い', k: 'イ' }, { r: 'u', h: 'う', k: 'ウ' }, { r: 'e', h: 'え', k: 'エ' }, { r: 'o', h: 'お', k: 'オ' },
+                { r: 'ka', h: 'か', k: 'カ' }, { r: 'ki', h: 'き', k: 'キ' }, { r: 'ku', h: 'く', k: 'ク' }, { r: 'ke', h: 'け', k: 'ケ' }, { r: 'ko', h: 'こ', k: 'コ' },
+                { r: 'sa', h: 'さ', k: 'サ' }, { r: 'shi', h: 'し', k: 'シ' }, { r: 'su', h: 'す', k: 'ス' }, { r: 'se', h: 'せ', k: 'セ' }, { r: 'so', h: 'そ', k: 'ソ' },
+                { r: 'ta', h: 'た', k: 'タ' }, { r: 'chi', h: 'ち', k: 'チ' }, { r: 'tsu', h: 'つ', k: 'ツ' }, { r: 'te', h: 'て', k: 'テ' }, { r: 'to', h: 'と', k: 'ト' },
+                { r: 'na', h: 'な', k: 'ナ' }, { r: 'ni', h: 'に', k: 'ニ' }, { r: 'nu', h: 'ぬ', k: 'ヌ' }, { r: 'ne', h: 'ね', k: 'ネ' }, { r: 'no', h: 'の', k: 'ノ' },
+                { r: 'ha', h: 'は', k: 'ハ' }, { r: 'hi', h: 'ひ', k: 'ヒ' }, { r: 'fu', h: 'ふ', k: 'フ' }, { r: 'he', h: 'へ', k: 'ヘ' }, { r: 'ho', h: 'ほ', k: 'ホ' },
+                { r: 'ma', h: 'ま', k: 'マ' }, { r: 'mi', h: 'み', k: 'ミ' }, { r: 'mu', h: 'む', k: 'ム' }, { r: 'me', h: 'め', k: 'メ' }, { r: 'mo', h: 'も', k: 'モ' },
+                { r: 'ya', h: 'や', k: 'ヤ' }, { r: 'yu', h: 'ゆ', k: 'ユ' }, { r: 'yo', h: 'よ', k: 'ヨ' },
+                { r: 'ra', h: 'ら', k: 'ラ' }, { r: 'ri', h: 'り', k: 'リ' }, { r: 'ru', h: 'る', k: 'ル' }, { r: 're', h: 'れ', k: 'レ' }, { r: 'ro', h: 'ろ', k: 'ロ' },
+                { r: 'wa', h: 'わ', k: 'ワ' }, { r: 'wo', h: 'を', k: 'ヲ' }, { r: 'n', h: 'ん', k: 'ン' }
+            ],
+            dakuon: [
+                { r: 'ga', h: 'が', k: 'ガ' }, { r: 'gi', h: 'ぎ', k: 'ギ' }, { r: 'gu', h: 'ぐ', k: 'グ' }, { r: 'ge', h: 'げ', k: 'ゲ' }, { r: 'go', h: 'ご', k: 'ゴ' },
+                { r: 'za', h: 'ざ', k: 'ザ' }, { r: 'ji', h: 'じ', k: 'ジ' }, { r: 'zu', h: 'ず', k: 'ズ' }, { r: 'ze', h: 'ぜ', k: 'ゼ' }, { r: 'zo', h: 'ぞ', k: 'ゾ' },
+                { r: 'da', h: 'だ', k: 'ダ' }, { r: 'ji', h: 'ぢ', k: 'ヂ' }, { r: 'zu', h: 'づ', k: 'ヅ' }, { r: 'de', h: 'で', k: 'デ' }, { r: 'do', h: 'ど', k: 'ド' },
+                { r: 'ba', h: 'ば', k: 'バ' }, { r: 'bi', h: 'び', k: 'ビ' }, { r: 'bu', h: 'ぶ', k: 'ブ' }, { r: 'be', h: 'べ', k: 'ベ' }, { r: 'bo', h: 'ぼ', k: 'ボ' }
+            ],
+            handakuon: [
+                { r: 'pa', h: 'ぱ', k: 'パ' }, { r: 'pi', h: 'ぴ', k: 'ピ' }, { r: 'pu', h: 'ぷ', k: 'プ' }, { r: 'pe', h: 'ぺ', k: 'ペ' }, { r: 'po', h: 'ぽ', k: 'ポ' }
+            ],
+            yoon: [
+                { r: 'kya', h: 'きゃ', k: 'キャ' }, { r: 'kyu', h: 'きゅ', k: 'キュ' }, { r: 'kyo', h: 'きょ', k: 'キョ' },
+                { r: 'sha', h: 'しゃ', k: 'シャ' }, { r: 'shu', h: 'しゅ', k: 'シュ' }, { r: 'sho', h: 'しょ', k: 'ショ' },
+                { r: 'cha', h: 'ちゃ', k: 'チャ' }, { r: 'chu', h: 'ちゅ', k: 'チュ' }, { r: 'cho', h: 'ちょ', k: 'チョ' },
+                { r: 'nya', h: 'にゃ', k: 'ニャ' }, { r: 'nyu', h: 'にゅ', k: 'ニュ' }, { r: 'nyo', h: 'にょ', k: 'ニョ' },
+                { r: 'hya', h: 'ひゃ', k: 'ヒャ' }, { r: 'hyu', h: 'ひゅ', k: 'ヒュ' }, { r: 'hyo', h: 'ひょ', k: 'ヒョ' },
+                { r: 'mya', h: 'みゃ', k: 'ミャ' }, { r: 'myu', h: 'みゅ', k: 'ミュ' }, { r: 'myo', h: 'みょ', k: 'ミョ' },
+                { r: 'rya', h: 'りゃ', k: 'リャ' }, { r: 'ryu', h: 'りゅ', k: 'リュ' }, { r: 'ryo', h: 'りょ', k: 'リョ' },
+                { r: 'gya', h: 'ぎゃ', k: 'ギャ' }, { r: 'gyu', h: 'ぎゅ', k: 'ギュ' }, { r: 'gyo', h: 'ぎょ', k: 'ギョ' },
+                { r: 'ja', h: 'じゃ', k: 'ジャ' }, { r: 'ju', h: 'じゅ', k: 'ジュ' }, { r: 'jo', h: 'じょ', k: 'ジョ' },
+                { r: 'bya', h: 'びゃ', k: 'ビャ' }, { r: 'byu', h: 'びゅ', k: 'ビュ' }, { r: 'byo', h: 'びょ', k: 'ビョ' },
+                { r: 'pya', h: 'ぴゃ', k: 'ピャ' }, { r: 'pyu', h: 'ぴゅ', k: 'ピュ' }, { r: 'pyo', h: 'ぴょ', k: 'ピョ' }
+            ]
+        };
         
-        recognition.lang = 'ja-JP';
-        recognition.continuous = false; 
-        recognition.interimResults = false;
-        recognition.grammars = new (window.SpeechGrammarList || window.webkitSpeechGrammarList)();
-        recognition.grammars.add(new (window.SpeechGrammar)(`#JSGF V1.0; grammar kana; public <kana> = ${HINTS.join(' | ')};`), 1);
+        // 來自第二段程式碼的 HINTS，用於優化語音識別
+        const HINTS = [
+            'あ', 'い', 'いい', 'う', 'え', 'ええ', 'お', 
+            'か', 'き', 'く', 'け', 'こ',
+            'さ', 'し', 'す', 'せ', 'そ',
+            'た', 'ち', 'つ', 'て', 'と',
+            'な', 'に', 'ぬ', 'ね', 'の',
+            'は', 'ひ', 'ふ', 'へ', 'ほ',
+            'ま', 'み', 'む', 'め', 'も',
+            'や', 'ゆ', 'よ', 'ら', 'り', 'る', 'れ', 'ろ',
+            'わ', 'を', 'ん', 'ン',
+            'が', 'ぎ', 'ぐ', 'げ', 'ご', 'ざ', 'じ', 'ず', 'ぜ', 'ぞ', 'だ', 'ぢ', 'づ', 'で', 'ど', 'ば', 'び', 'ぶ', 'べ', 'ぼ', 'ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ' // 加入濁音和半濁音
+        ];
 
+        const QUESTIONS_LIMIT = 25;
+        let sessionData = { count: 0, correct: 0 };
+        let state = { category: 'seion', kanaType: 'h', inputMode: 'voice', currentCard: null, pool: [] };
+        let globalMistakes = JSON.parse(localStorage.getItem('gojuon_sakura_mistakes_v2')) || {};
+        let recognition = null;
+        let isListening = false;
+        let speechRate = 1.0; 
+
+        window.onload = function() {
+            initPool();
+            initSpeech();
+            nextQuestion();
+        };
+
+        function initPool() {
+            if(state.category === 'all') {
+                state.pool = [...gojuonDB.seion, ...gojuonDB.dakuon, ...gojuonDB.handakuon, ...gojuonDB.yoon];
+            } else {
+                state.pool = gojuonDB[state.category];
+            }
+        }
+
+        // 簡易平假名轉片假名輔助函數 (用於增強判斷)
         function getKatakana(hira) {
-            const map = {'あ': 'ア', 'い': 'イ', 'う': 'ウ', 'え': 'エ', 'お': 'オ', 'か': 'カ', 'き': 'キ', 'く': 'ク', 'け': 'ケ', 'こ': 'コ', 'さ': 'サ', 'し': 'シ', 'す': 'ス', 'せ': 'セ', 'そ': 'ソ', 'た': 'タ', 'ち': 'チ', 'つ': 'ツ', 'て': 'テ', 'と': 'ト', 'な': 'ナ', 'に': 'ニ', 'ぬ': 'ヌ', 'ね': 'ネ', 'の': 'ノ', 'は': 'ハ', 'ひ': 'ヒ', 'ふ': 'フ', 'へ': 'ヘ', 'ほ': 'ホ', 'ま': 'マ', 'み': 'ミ', 'む': 'ム', 'め': 'メ', 'も': 'モ', 'や': 'ヤ', 'ゆ': 'ユ', 'よ': 'ヨ', 'ら': 'ラ', 'り': 'リ', 'る': 'ル', 'れ': 'レ', 'ろ': 'ロ', 'わ': 'ワ', 'を': 'ヲ', 'ん': 'ン'};
+            const map = {'あ': 'ア', 'い': 'イ', 'う': 'ウ', 'え': 'エ', 'お': 'オ', 'か': 'カ', 'き': 'キ', 'く': 'ク', 'け': 'ケ', 'こ': 'コ', 'さ': 'サ', 'し': 'シ', 'す': 'ス', 'せ': 'セ', 'そ': 'ソ', 'た': 'タ', 'ち': 'チ', 'つ': 'ツ', 'て': 'テ', 'と': 'ト', 'な': 'ナ', 'に': 'ニ', 'ぬ': 'ヌ', 'ね': 'ネ', 'の': 'ノ', 'は': 'ハ', 'ひ': 'ヒ', 'ふ': 'フ', 'へ': 'ヘ', 'ほ': 'ホ', 'ま': 'マ', 'み': 'ミ', 'む': 'ム', 'め': 'メ', 'も': 'モ', 'や': 'ヤ', 'ゆ': 'ユ', 'よ': 'ヨ', 'ら': 'ラ', 'り': 'リ', 'る': 'ル', 'れ': 'レ', 'ろ': 'ロ', 'わ': 'ワ', 'を': 'ヲ', 'ん': 'ン', 'が': 'ガ', 'ぎ': 'ギ', 'ぐ': 'グ', 'げ': 'ゲ', 'ご': 'ゴ', 'ざ': 'ザ', 'じ': 'ジ', 'ず': 'ズ', 'ぜ': 'ゼ', 'ぞ': 'ゾ', 'だ': 'ダ', 'ぢ': 'ヂ', 'づ': 'ヅ', 'で': 'デ', 'ど': 'ド', 'ば': 'バ', 'び': 'ビ', 'ぶ': 'ブ', 'べ': 'ベ', 'ぼ': 'ボ', 'ぱ': 'パ', 'ぴ': 'ピ', 'ぷ': 'プ', 'ぺ': 'ペ', 'ぽ': 'ポ', 'きゃ': 'キャ', 'きゅ': 'キュ', 'きょ': 'キョ', 'しゃ': 'シャ', 'しゅ': 'シュ', 'しょ': 'ショ', 'ちゃ': 'チャ', 'ちゅ': 'チュ', 'ちょ': 'チョ', 'にゃ': 'ニャ', 'にゅ': 'ニュ', 'にょ': 'ニョ', 'ひゃ': 'ヒャ', 'ひゅ': 'ヒュ', 'ひょ': 'ヒョ', 'みゃ': 'ミャ', 'みゅ': 'ミュ', 'みょ': 'ミョ', 'りゃ': 'リャ', 'りゅ': 'リュ', 'りょ': 'リョ', 'ぎゃ': 'ギャ', 'ぎゅ': 'ギュ', 'ぎょ': 'ギョ', 'じゃ': 'ジャ', 'じゅ': 'ジュ', 'じょ': 'ジョ', 'びゃ': 'ビャ', 'びゅ': 'ビュ', 'びょ': 'ビョ', 'ぴゃ': 'ピャ', 'ぴゅ': 'ピュ', 'ぴょ': 'ピョ'};
             return map[hira] || hira; 
         }
 
-        function isPronunciationCorrect(result, target) {
+        function initSpeech() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ja-JP';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                // 套用提示詞，增強日語單個假名的識別率
+                if (recognition.grammars) {
+                    recognition.grammars = HINTS;
+                }
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('mic-btn').classList.add('listening');
+                    const currentKana = state.currentCard[state.kanaType];
+                    logStatus(`🔊 聆聽中...請大聲朗讀：【${currentKana}】`);
+                };
+                
+                recognition.onend = () => {
+                    isListening = false;
+                    document.getElementById('mic-btn').classList.remove('listening');
+                    // 如果狀態還停在"聆聽中"，表示沒有識別到結果
+                    if (document.getElementById('status-log').innerText.includes("聆聽中")) {
+                        logStatus("❌ 未檢測到聲音，請再試一次");
+                    }
+                };
+
+                recognition.onresult = (e) => {
+                    const transcript = e.results[0][0].transcript;
+                    // 實時顯示識別到的文字
+                    logStatus(`👂 識別結果: "${transcript}"`);
+                    checkAnswer(transcript);
+                };
+
+                recognition.onerror = (e) => {
+                    isListening = false;
+                    document.getElementById('mic-btn').classList.remove('listening');
+                    if (e.error === 'not-allowed') {
+                        logStatus("⛔ 麥克風權限被拒，請查看網址列");
+                    } else if (e.error === 'no-speech') {
+                        logStatus("❌ 未檢測到聲音");
+                    } else {
+                        logStatus("⚠️ 錯誤: " + e.error);
+                    }
+                };
+            } else {
+                logStatus("⚠️ 此瀏覽器不支援語音 API");
+                document.getElementById('mic-btn').disabled = true;
+                document.getElementById('btn-voice').disabled = true;
+                setInputMode('type'); // 強制切換到打字模式
+            }
+        }
+
+        function toggleSpeech() {
+            if(!recognition) return alert("請使用 Chrome/Edge 瀏覽器");
+            if(isListening) recognition.stop();
+            else {
+                try { recognition.start(); } catch(e) { console.error(e); }
+            }
+        }
+
+        function updateSpeed(val) {
+            speechRate = parseFloat(val);
+            document.getElementById('speed-display').innerText = speechRate + 'x';
+        }
+
+        function playAudio() {
+            if(!state.currentCard) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(state.currentCard.h);
+            u.lang = 'ja-JP';
+            u.rate = speechRate;
+            window.speechSynthesis.speak(u);
+        }
+
+        function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
+
+        function setCategory(cat, btn) {
+            state.category = cat;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            restartSession();
+        }
+
+        function setInputMode(mode) {
+            state.inputMode = mode;
+            document.getElementById('btn-voice').className = mode === 'voice' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btn-type').className = mode === 'type' ? 'mode-btn active' : 'mode-btn';
+            const mic = document.getElementById('mic-btn');
+            const input = document.getElementById('text-input');
+
+            if(mode === 'type') {
+                mic.style.display = 'none'; input.style.display = 'block'; input.focus();
+                logStatus("⌨️ 輸入後按 Enter");
+            } else {
+                mic.style.display = 'flex'; input.style.display = 'none';
+                logStatus("點擊麥克風開始");
+            }
+        }
+
+        function setKana(type, btn) {
+            state.kanaType = type;
+            btn.parentElement.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateCardUI();
+        }
+
+        function nextQuestion() {
+            if (sessionData.count >= QUESTIONS_LIMIT) {
+                showResults();
+                return;
+            }
+            sessionData.count++;
+            document.getElementById('progress-text').innerText = `${sessionData.count} / ${QUESTIONS_LIMIT}`;
+            const rand = Math.floor(Math.random() * state.pool.length);
+            state.currentCard = state.pool[rand];
+            updateCardUI();
+            document.getElementById('flashcard').classList.remove('wrong-shake');
+            document.getElementById('text-input').value = '';
+            if(state.inputMode === 'voice') {
+                // 在切換到下一題時，如果是在語音模式，狀態 log 應為點擊麥克風開始
+                logStatus("點擊麥克風開始");
+            } else {
+                logStatus("⌨️ 輸入後按 Enter");
+            }
+        }
+
+        function updateCardUI() {
+            if(!state.currentCard) return;
+            const char = state.kanaType === 'h' ? state.currentCard.h : state.currentCard.k;
+            const div = document.getElementById('kana-display');
+            div.innerText = char;
+            div.style.fontSize = char.length > 1 ? '4rem' : '5rem'; // 調整字體大小以適應更長的拗音
+            document.getElementById('romaji-hint').innerText = state.currentCard.r;
+        }
+
+        // --- 核心修復：超寬容判定邏輯 ---
+        
+        /**
+         * 第二段程式碼的寬鬆語音判斷邏輯，針對純日語假名發音
+         * @param {string} result - 語音識別返回的文字（日語假名）
+         * @param {string} targetKana - 練習目標假名（平假名）
+         * @returns {boolean}
+         */
+        function isPronunciationCorrect_Loose(result, targetKana) {
+            // 步驟 1: 清理識別結果 (移除空格、標點、長音符號)
             let cleanResult = result.replace(/[\s、。！？,.\-ー]/g, '').toLowerCase();
-            let cleanTarget = target.toLowerCase(); 
-            const targetKatakana = getKatakana(cleanTarget).toLowerCase();
-
-            // 精確匹配、平假名/片假名互轉、を/お 模糊
-            if (cleanResult === cleanTarget || cleanResult === targetKatakana) {
+            let cleanTarget = targetKana.toLowerCase(); 
+            
+            // 步驟 2: 精確匹配 (包括提示詞中加入的變體，例如 'あ' 和 'いい')
+            if (HINTS.includes(cleanResult)) {
+                 // 檢查結果是否包含目標假名，或目標假名是否包含結果（處理長音/短音模糊，例如目標「い」，結果「いい」）
+                if (cleanResult.includes(cleanTarget) || cleanTarget.includes(cleanResult)) {
+                    return true;
+                }
+            }
+            // 如果目標就是結果，當然正確
+            if (cleanResult === cleanTarget) return true;
+        
+            // 步驟 3: 簡易平假名與片假名互轉檢查 (Web API 常見混淆)
+            const targetKatakana = getKatakana(cleanTarget);
+            if (cleanResult === targetKatakana.toLowerCase()) {
                 return true;
             }
-            if (target === 'を' && (cleanResult === 'お' || cleanResult === 'オ'.toLowerCase())) {
+
+            // 步驟 4: 處理「を」的特殊情況 (發音類似「お」)
+            if (cleanTarget === 'を' && (cleanResult === 'お' || cleanResult === 'オ')) {
                 return true;
             }
-            // 處理短音/長音模糊 (目標「い」，結果「いい」)
-            if (cleanResult.length > cleanTarget.length && cleanResult.startsWith(cleanTarget)) {
-                // 接受 'いい' -> 'い' (如果識別器在短音後補了長音)
-                 if (cleanResult.length === cleanTarget.length + 1 && cleanResult.includes(cleanTarget)) return true;
-            }
-
+            
             return false;
         }
-        
-        function setNextTarget() {
-            const randomIndex = Math.floor(Math.random() * ALL_HIRAGANA_CHARS.length);
-            currentTargetChar = ALL_HIRAGANA_CHARS[randomIndex];
-            displayChar.textContent = currentTargetChar;
-            recognizedResult.textContent = '';
-        }
 
-        // 啟動流程
-        startBtn.addEventListener('click', async () => {
-            if (isListening) recognition.abort();
-            setNextTarget(); // 設定新的目標
-            startBtn.disabled = true;
-            startBtn.textContent = '正在聆聽...';
-            try {
-                await initWebAudio(); // iOS 喚醒與 AudioContext 初始化
-                recognition.start();
-            } catch (e) {
-                console.error('Recognition Start Error:', e);
-                if (e.name === 'InvalidStateError') {
-                    recognition.abort(); 
-                    recognition.start(); 
-                } else {
-                    statusMessage.textContent = '❌ 麥克風權限錯誤或設備不支援。';
-                    statusMessage.className = 'status-message incorrect';
-                    startBtn.disabled = false;
-                    startBtn.textContent = '重新開始';
-                }
-            }
-        });
-
-        // 處理識別結果
-        recognition.onresult = (event) => {
-            const result = event.results[0][0].transcript.trim();
-            const confidence = event.results[0][0].confidence;
+        function checkAnswer(inputRaw) {
+            // 1. 轉小寫、移除標點符號、移除空格
+            const input = inputRaw.toLowerCase().replace(/[.。、!?\s]/g, '').trim();
+            const target = state.currentCard;
             
-            recognizedResult.textContent = `識別到: ${result} (準確度: ${(confidence * 100).toFixed(1)}%)`;
-            
-            if (isPronunciationCorrect(result, currentTargetChar)) {
-                statusMessage.textContent = `✅ 太棒了！發音正確！(${currentTargetChar})`;
-                statusMessage.className = 'status-message correct';
-            } else {
-                statusMessage.textContent = `❌ 發音錯誤。您說的是 "${result}"，期待的是 "${currentTargetChar}"。`;
-                statusMessage.className = 'status-message incorrect';
-            }
-        };
-        
-        // 處理識別開始
-        recognition.onstart = () => {
-            isListening = true;
-            statusMessage.textContent = `👂 請清晰地發音：【${currentTargetChar}】`;
-            statusMessage.className = 'status-message listening';
-            recognizedResult.textContent = '（正在聆聽您的聲音...）';
-            startBtn.disabled = true;
-            startVisualizer();
-        };
-        
-        // 處理語音結束 (使用者停止說話)
-        recognition.onend = () => {
-            isListening = false;
-            stopVisualizer();
-            // 如果 onresult 沒有觸發 (沒有識別結果)，則顯示未偵測到語音
-            if (startBtn.disabled) {
-                statusMessage.textContent = '🤔 未偵測到有效語音輸入，請再點擊「下一題」並說得更清晰。';
-                statusMessage.className = 'status-message incorrect';
-            }
-            startBtn.disabled = false;
-            startBtn.textContent = '下一題';
-            pronounceBtn.disabled = false;
-        };
-        
-        // 處理錯誤
-        recognition.onerror = (event) => {
-            isListening = false;
-            stopVisualizer();
-            startBtn.disabled = false;
-            startBtn.textContent = '重新開始';
-            pronounceBtn.disabled = false;
-            
-            if (event.error === 'not-allowed') {
-                statusMessage.textContent = '❌ 錯誤：請允許麥克風權限。';
-            } else if (event.error === 'no-speech') {
-                statusMessage.textContent = '⚠️ 錯誤：偵測不到語音（說得太小聲或太慢）。';
-            } else {
-                statusMessage.textContent = `發生錯誤: ${event.error}。`;
-            }
-            statusMessage.className = 'status-message incorrect';
-            recognizedResult.textContent = '';
-        };
+            let isCorrect = false;
 
-        // ---------------------------------
-        // #B. 語音合成 (Web Speech Synthesis)
-        // ---------------------------------
-        const synthesis = window.speechSynthesis;
-        const voiceMap = {
-            'female': 'Kyoko', // Standard Female 
-            'male': 'Otoya',   // Standard Male
-            'premium_female': 'Mei', // High quality female (often mapped to premium on some platforms)
-            'premium_male': 'Takeo' // High quality male
-        };
-        let voices = [];
-        let voicesLoaded = false;
-        
-        function populateVoices() {
-            voices = synthesis.getVoices().filter(voice => voice.lang.startsWith('ja-'));
-            voicesLoaded = true;
-            console.log('Voices loaded:', voices.map(v => v.name));
-        }
+            if (state.inputMode === 'voice') {
+                // **【A】羅馬拼音標準寬容判斷** (原第一段邏輯)
+                const isRomajiMatch = (
+                    input === target.r || 
+                    input === target.r.replace('fu', 'hu') ||
+                    input === target.r.replace('shi', 'si') ||
+                    input === target.r.replace('chi', 'ti') ||
+                    input === target.r.replace('tsu', 'tu')
+                );
 
-        if (synthesis.onvoiceschanged !== undefined) {
-            synthesis.onvoiceschanged = populateVoices;
-        } else {
-            populateVoices();
-        }
-
-        pronounceBtn.addEventListener('click', () => {
-            speak(displayChar.textContent);
-        });
-
-        function speak(text) {
-            if (synthesis.speaking) {
-                synthesis.cancel();
-            }
-            if (!text || text === '點擊開始') return;
-
-            const utterance = new SpeechSynthesisUtterance(text);
-            const selectedGender = voiceGenderSelect.value;
-            const targetName = voiceMap[selectedGender];
-            
-            const targetVoice = voices.find(voice => voice.name.includes(targetName) || voice.name.toLowerCase().includes(targetName.toLowerCase()));
-
-            if (targetVoice) {
-                utterance.voice = targetVoice;
-            } else {
-                // 如果找不到特定的語音，就使用第一個日語語音
-                utterance.voice = voices.length > 0 ? voices[0] : null;
-            }
-
-            utterance.lang = 'ja-JP';
-            utterance.rate = 0.8; // 稍慢，更適合學習
-            utterance.pitch = 1.0;
-            
-            pronounceBtn.disabled = true;
-            utterance.onend = () => {
-                pronounceBtn.disabled = false;
-            };
-            synthesis.speak(utterance);
-        }
-
-        // ---------------------------------
-        // #C. 語音視覺化與 iOS 喚醒 (Web Audio API)
-        // ---------------------------------
-        let audioContext, analyser, microphone, stream;
-
-        async function initWebAudio() {
-            try {
-                // 請求麥克風權限
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                // **【B】日語假名/片假名寬鬆判斷** (原第二段邏輯增強)
+                const isKanaMatch = (
+                    input === target.h || // 平假名
+                    input === target.k || // 片假名
+                    isPronunciationCorrect_Loose(input, target.h) // 融合第二段的更寬鬆假名判斷
+                );
                 
-                // **iOS 喚醒機制 (Silent Oscillator)**
-                // 在 AudioContext 啟動時播放一個極短的、無聲的震盪器
-                if (audioContext.state === 'suspended') {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    gainNode.gain.value = 0; // 靜音
-                    oscillator.start(0);
-                    oscillator.stop(0.001); // 播放 1 毫秒
-                    await audioContext.resume();
-                }
+                isCorrect = isRomajiMatch || isKanaMatch;
 
-                microphone = audioContext.createMediaStreamSource(stream);
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                microphone.connect(analyser);
+            } else {
+                // 打字模式：僅需羅馬拼音正確
+                isCorrect = (input === target.r);
+            }
 
-                return true;
-            } catch (err) {
-                console.error('Error initializing audio:', err);
-                statusMessage.textContent = '❌ 無法啟用麥克風。請檢查權限設定。';
-                statusMessage.className = 'status-message incorrect';
-                return false;
+            if (isCorrect) {
+                sessionData.correct++;
+                logStatus("✅ 正確！太棒了！");
+                playAudio();
+                setTimeout(nextQuestion, 1000);
+            } else {
+                logStatus(`❌ 應為: ${target.r} 或 ${target.h} (識別為: ${input})`);
+                document.getElementById('flashcard').classList.add('wrong-shake');
+                recordMistake(target);
+                setTimeout(nextQuestion, 2000); // 延長顯示時間以便閱讀錯誤
             }
         }
 
-        let rafId;
-        function startVisualizer() {
-            if (!analyser) return;
+        document.getElementById('text-input').addEventListener('keyup', (e) => {
+            if(e.key === 'Enter') checkAnswer(e.target.value);
+        });
 
-            const bufferLength = analyser.fftSize;
-            const dataArray = new Uint8Array(bufferLength);
-
-            function draw() {
-                rafId = requestAnimationFrame(draw);
-
-                analyser.getByteFrequencyData(dataArray);
-
-                // 計算平均音量
-                let sum = 0;
-                for(let i = 0; i < bufferLength; i++) {
-                    sum += dataArray[i];
-                }
-                let average = sum / bufferLength;
-
-                // 將音量映射到 0% 到 100% 的寬度 (可調整係數 2.5 讓其更靈敏)
-                const volume = Math.min(100, average * 2.5); 
-                visualizerBar.style.width = `${volume}%`;
-            }
-
-            draw();
+        function recordMistake(card) {
+            const key = card.r;
+            if (!globalMistakes[key]) globalMistakes[key] = { count: 0, char: card.h, romaji: card.r };
+            globalMistakes[key].count++;
+            localStorage.setItem('gojuon_sakura_mistakes_v2', JSON.stringify(globalMistakes));
         }
 
-        function stopVisualizer() {
-            cancelAnimationFrame(rafId);
-            visualizerBar.style.width = '0%';
-            // 停止麥克風串流
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
-            // 嘗試關閉 AudioContext
-            if (audioContext && audioContext.state !== 'closed') {
-                // audioContext.close(); // 不關閉，留待下次使用，避免重新初始化消耗時間
-            }
+        function showResults() {
+            document.getElementById('practice-view').style.display = 'none';
+            document.getElementById('result-view').style.display = 'block';
+            const score = Math.round((sessionData.correct / QUESTIONS_LIMIT) * 100);
+            document.getElementById('final-score').innerText = score;
+            renderRanking();
         }
-    }
 
+        function renderRanking() {
+            const container = document.getElementById('ranking-container');
+            container.innerHTML = '';
+            const sorted = Object.values(globalMistakes).sort((a, b) => b.count - a.count).slice(0, 20);
 
-    // ---------------------------------
-    // #D. 櫻花飄落動畫生成
-    // ---------------------------------
-    const sakuraContainer = document.getElementById('sakura-fall-container');
-    const NUM_SAKURA = 50; // 櫻花數量
-
-    function createSakura() {
-        for (let i = 0; i < NUM_SAKURA; i++) {
-            const petal = document.createElement('i');
-            petal.style.left = `${Math.random() * 100}vw`;
-            petal.style.animationDuration = `${Math.random() * 10 + 5}s`; // 5s to 15s
-            petal.style.animationDelay = `${Math.random() * 5}s`;
-            petal.style.width = `${Math.random() * 5 + 3}px`;
-            petal.style.height = petal.style.width;
-            sakuraContainer.appendChild(petal);
+            if (sorted.length === 0) {
+                container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#b2bec3;">🌸 完美！目前沒有錯題記錄</div>';
+                return;
+            }
+            sorted.forEach((item) => {
+                const html = `
+                    <div class="rank-item">
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span style="font-size:1.2rem; font-weight:bold;">${item.char}</span>
+                            <span style="color:#b2bec3; font-size:0.9rem;">${item.romaji}</span>
+                        </div>
+                        <span style="background:#ffeaa7; padding:2px 8px; border-radius:10px; font-size:0.8rem; color:#d35400;">${item.count}次</span>
+                    </div>`;
+                container.innerHTML += html;
+            });
         }
-    }
 
-    createSakura();
-</script>
-
+        function restartSession() {
+            sessionData = { count: 0, correct: 0 };
+            initPool();
+            document.getElementById('practice-view').style.display = 'flex';
+            document.getElementById('result-view').style.display = 'none';
+            nextQuestion();
+        }
+    </script>
 </body>
 </html>
